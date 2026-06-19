@@ -4,7 +4,7 @@
 
 ## 📝 Description
 
-SpendTrack is a web platform that helps you manage your daily expenses and savings. This provides features such as daily expense tracking, savings monitoring, reports and analytics to help you manage your budget efficiently.
+SpendTracker is a web platform that helps you manage your daily expenses and savings. This provides features such as daily expense tracking, savings monitoring, reports and analytics to help you manage your budget efficiently.
 
 ## 🛠️ Tools & Technologies
 
