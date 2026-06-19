@@ -1,0 +1,29 @@
+@props(['active' => 'dashboard'])
+
+<aside class="sidebar">
+    <div class="sidebar-brand">SpendTrack</div>
+
+    <nav class="sidebar-nav">
+        <a href="{{ route('dashboard') }}" class="sidebar-link {{ $active === 'dashboard' ? 'active' : '' }}">
+            <i class="fas fa-chart-pie"></i> Dashboard
+        </a>
+        <a href="#" class="sidebar-link {{ $active === 'transactions' ? 'active' : '' }}">
+            <i class="fas fa-receipt"></i> Transactions
+        </a>
+        <a href="{{ route('categories.index') }}" class="sidebar-link {{ $active === 'categories' ? 'active' : '' }}">
+            <i class="fas fa-tags"></i> Categories
+        </a>
+        <a href="{{ route('budgets.index') }}" class="sidebar-link {{ $active === 'budgets' ? 'active' : '' }}">
+            <i class="fas fa-bullseye"></i> Budgets
+        </a>
+        <a href="#" class="sidebar-link {{ $active === 'settings' ? 'active' : '' }}">
+            <i class="fas fa-cog"></i> Settings
+        </a>
+    </nav>
+
+    <div class="sidebar-logout">
+        <button type="button" class="sidebar-link w-100 border-0 bg-transparent text-start" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </div>
+</aside>

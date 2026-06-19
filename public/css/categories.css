@@ -1,0 +1,91 @@
+/* ===== Categories table =================================================== */
+
+#categoriesTable thead th {
+    background-color: #faf8f6;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border-soft);
+    padding: 0.85rem 1rem;
+}
+
+#categoriesTable tbody td {
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: middle;
+}
+
+#categoriesTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#categoriesTable tbody tr:hover {
+    background-color: #faf8f6;
+}
+
+/* ===== Category filter tabs =============================================== */
+
+#categoryTabs .nav-link {
+    border: none;
+    border-radius: 999px;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background-color: transparent;
+}
+
+#categoryTabs .nav-link:hover {
+    color: var(--text-primary);
+    background-color: #f3f1ee;
+}
+
+#categoryTabs .nav-link.active {
+    color: #fff;
+    background: linear-gradient(90deg, var(--magma-core), var(--magma-deep));
+}
+
+/* ===== Category badges & swatches ========================================= */
+
+.category-type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.category-type-badge.expense {
+    background: rgba(255, 77, 28, 0.12);
+    color: var(--magma-deep);
+}
+
+.category-type-badge.income {
+    background: rgba(45, 212, 191, 0.14);
+    color: #0d9488;
+}
+
+.category-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: inline-block;
+    border: 1px solid var(--border-soft);
+}
+
+.category-icon-cell {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f3f1ee;
+    color: var(--text-muted);
+}
