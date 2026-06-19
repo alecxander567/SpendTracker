@@ -7,8 +7,8 @@
         <a href="{{ route('dashboard') }}" class="sidebar-link {{ $active === 'dashboard' ? 'active' : '' }}">
             <i class="fas fa-chart-pie"></i> Dashboard
         </a>
-        <a href="#" class="sidebar-link {{ $active === 'transactions' ? 'active' : '' }}">
-            <i class="fas fa-receipt"></i> Transactions
+        <a href="{{ route('expenses.index') }}" class="sidebar-link {{ $active === 'expenses' ? 'active' : '' }}">
+            <i class="fas fa-receipt"></i> Expenses
         </a>
         <a href="{{ route('categories.index') }}" class="sidebar-link {{ $active === 'categories' ? 'active' : '' }}">
             <i class="fas fa-tags"></i> Categories

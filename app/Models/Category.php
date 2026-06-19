@@ -38,11 +38,13 @@ class Category extends Model
         return $this->hasMany(Budget::class);
     }
 
-    // Commented out - Expense model doesn't exist yet
-    // public function expenses()
-    // {
-    //     return $this->hasMany(Expense::class);
-    // }
+    /**
+     * Get the expenses for this category.
+     */
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
 
     public function scopeExpense($query)
     {

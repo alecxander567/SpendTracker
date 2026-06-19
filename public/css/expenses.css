@@ -1,0 +1,353 @@
+/* ===== Expense form page ================================================== */
+/* Extends dashboard.css — relies on the same :root tokens (--magma-core, etc). */
+
+.back-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.back-link:hover {
+    color: var(--magma-core);
+}
+
+.expense-form {
+    margin-top: 1.5rem;
+}
+
+/* ===== Amount input ======================================================= */
+
+.amount-input-wrap {
+    position: relative;
+}
+
+.amount-prefix {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.amount-input {
+    padding-left: 2.25rem !important;
+    font-size: 1.6rem;
+    font-weight: 700;
+    height: auto;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+}
+
+.amount-input:focus {
+    border-color: var(--magma-core);
+    box-shadow: 0 0 0 0.2rem rgba(255, 77, 28, 0.15);
+}
+
+/* ===== Payment method grid - Improved v2 =================================== */
+
+.payment-method-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 0.5rem;
+}
+
+.payment-option {
+    cursor: pointer;
+}
+
+.payment-option input[type="radio"] {
+    /* visually hidden but still focusable/keyboard-operable */
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.payment-option span {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.7rem 0.5rem;
+    border: 2px solid var(--border-soft, #e9ecef);
+    border-radius: var(--radius-sm, 8px);
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted, #6c757d);
+    transition: all 0.15s ease;
+    text-align: center;
+    min-height: 64px;
+    background: #fff;
+}
+
+.payment-option span i {
+    font-size: 1.3rem;
+    transition: color 0.15s ease;
+}
+
+.payment-option span small {
+    font-size: 0.68rem;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.payment-option input:checked + span {
+    border-color: var(--magma-core, #ff4d1c);
+    background: rgba(255, 77, 28, 0.08);
+    color: var(--magma-deep, #cc3a14);
+    box-shadow: 0 2px 8px rgba(255, 77, 28, 0.15);
+}
+
+.payment-option input:checked + span i {
+    color: var(--magma-core, #ff4d1c);
+}
+
+.payment-option input:checked + span::after {
+    content: "\f00c";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 0.6rem;
+    color: var(--magma-core, #ff4d1c);
+}
+
+.payment-option:hover span {
+    border-color: var(--magma-core, #ff4d1c);
+    background: rgba(255, 77, 28, 0.04);
+}
+
+.payment-option input:focus-visible + span {
+    outline: 2px solid var(--magma-core, #ff4d1c);
+    outline-offset: 2px;
+}
+
+#paymentMethodGrid.is-invalid .payment-option span {
+    border-color: #dc3545;
+}
+
+/* ===== Misc form polish ==================================================== */
+
+.expense-form .form-label {
+    font-size: 0.85rem;
+}
+
+.expense-form .form-control:focus,
+.expense-form .form-select:focus {
+    border-color: var(--magma-core);
+    box-shadow: 0 0 0 0.2rem rgba(255, 77, 28, 0.15);
+}
+
+.expense-form .invalid-feedback {
+    display: none;
+    font-size: 0.78rem;
+}
+
+.expense-form .is-invalid ~ .invalid-feedback,
+.expense-form .is-invalid + .invalid-feedback {
+    display: block;
+}
+
+/* ===== Expenses table ===================================================== */
+
+/* Payment method icons in table */
+.expenses-table .payment-icon {
+    font-size: 0.9rem;
+    width: 24px;
+    text-align: center;
+}
+
+/* Category badge in table */
+.category-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    color: white;
+    display: inline-block;
+}
+
+/* Amount styling */
+.amount-income {
+    color: var(--success, #28a745);
+    font-weight: 600;
+}
+
+.amount-expense {
+    color: var(--danger, #dc3545);
+    font-weight: 600;
+}
+
+/* ===== Expense Modal ====================================================== */
+
+#expenseModal .modal-dialog.modal-md {
+    max-width: 520px;
+}
+
+#expenseModal .modal-content {
+    border: none;
+    border-radius: var(--radius-lg, 16px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+#expenseModal .modal-header {
+    border: none;
+    padding-bottom: 0;
+}
+
+#expenseModal .modal-footer {
+    border: none;
+    padding-top: 0;
+}
+
+#expenseModal .modal-title {
+    font-size: 1.1rem;
+}
+
+#expenseModal .form-label {
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+}
+
+#expenseModal .form-control,
+#expenseModal .form-select {
+    font-size: 0.9rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: var(--radius-sm, 8px);
+}
+
+#expenseModal .form-control:focus,
+#expenseModal .form-select:focus {
+    border-color: var(--magma-core, #ff4d1c);
+    box-shadow: 0 0 0 0.2rem rgba(255, 77, 28, 0.12);
+}
+
+#expenseModal .input-group-text {
+    font-size: 0.9rem;
+    background: #fff;
+    border-right: none;
+}
+
+#expenseModal .input-group .form-control {
+    border-left: none;
+}
+
+#expenseModal .input-group .form-control:focus {
+    border-color: var(--magma-core, #ff4d1c);
+    box-shadow: none;
+}
+
+#expenseModal .input-group .form-control:focus + .input-group-text {
+    border-color: var(--magma-core, #ff4d1c);
+}
+
+/* ===== Delete Modal ====================================================== */
+
+#deleteExpenseModal .modal-dialog.modal-sm {
+    max-width: 380px;
+}
+
+#deleteExpenseModal .modal-content {
+    border: none;
+    border-radius: var(--radius-lg, 16px);
+}
+
+#deleteExpenseModal .modal-header {
+    border: none;
+    padding-bottom: 0;
+}
+
+#deleteExpenseModal .modal-footer {
+    border: none;
+}
+
+#deleteExpenseModal .modal-title {
+    font-size: 1rem;
+}
+
+/* ===== Form Switch ====================================================== */
+
+.form-switch .form-check-input {
+    width: 2.5rem;
+    height: 1.3rem;
+    cursor: pointer;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: var(--magma-core, #ff4d1c);
+    border-color: var(--magma-core, #ff4d1c);
+}
+
+.form-switch .form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 77, 28, 0.15);
+}
+
+.form-switch .form-check-label {
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* ===== Responsive tweaks ================================================== */
+
+@media (max-width: 576px) {
+    #expenseModal .modal-dialog.modal-md {
+        max-width: 100%;
+        margin: 0.5rem;
+    }
+
+    #expenseModal .modal-body {
+        padding: 1rem;
+    }
+
+    .payment-option span {
+        min-height: 54px;
+        padding: 0.5rem 0.3rem;
+    }
+
+    .payment-option span i {
+        font-size: 1.1rem;
+    }
+
+    .payment-option span small {
+        font-size: 0.6rem;
+    }
+
+    #deleteExpenseModal .modal-dialog.modal-sm {
+        max-width: 100%;
+        margin: 0.5rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .payment-method-grid {
+        gap: 0.35rem;
+    }
+
+    .payment-option span {
+        min-height: 50px;
+        padding: 0.4rem 0.2rem;
+        border-width: 1.5px;
+    }
+
+    .payment-option span i {
+        font-size: 1rem;
+        margin-bottom: 0.1rem;
+    }
+
+    .payment-option span small {
+        font-size: 0.55rem;
+    }
+}

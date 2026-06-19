@@ -32,7 +32,6 @@
                 <div class="row align-items-center">
                     <div class="col-12 col-md-7">
                         <div class="hero-eyebrow mb-2">Total balance</div>
-                        {{-- No transactions/ledger source yet, so this stays a placeholder until that backend exists --}}
                         <div class="hero-balance mb-1">₱0.00</div>
                         <p class="hero-sub mb-3 mb-md-0">Across all accounts &middot; transactions coming soon</p>
                     </div>
@@ -41,9 +40,10 @@
                             <button type="button" class="btn btn-hero flex-fill flex-md-grow-0 px-3" disabled>
                                 <i class="fas fa-arrow-up me-1"></i> Add income
                             </button>
-                            <button type="button" class="btn btn-hero-primary flex-fill flex-md-grow-0 px-3" disabled>
+                            <a href="{{ route('expenses.index') }}"
+                                class="btn btn-hero-primary flex-fill flex-md-grow-0 px-3">
                                 <i class="fas fa-plus me-1"></i> Add expense
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -63,7 +63,6 @@
                     <div class="stat-card">
                         <div class="stat-icon bg-income"><i class="fas fa-arrow-up"></i></div>
                         <div class="stat-label">Income this month</div>
-                        {{-- No transactions backend yet --}}
                         <div class="stat-value">₱0.00</div>
                         <div class="stat-trend up text-muted"><i class="fas fa-minus"></i> No data yet</div>
                     </div>
@@ -72,7 +71,6 @@
                     <div class="stat-card">
                         <div class="stat-icon bg-expense"><i class="fas fa-arrow-down"></i></div>
                         <div class="stat-label">Expenses this month</div>
-                        {{-- No transactions backend yet --}}
                         <div class="stat-value">₱0.00</div>
                         <div class="stat-trend down text-muted"><i class="fas fa-minus"></i> No data yet</div>
                     </div>
@@ -80,7 +78,7 @@
             </div>
 
             <div class="row g-3 mb-4">
-                <!-- Weekly spend chart (placeholder until transactions exist) -->
+                <!-- Weekly spend chart -->
                 <div class="col-12 col-lg-7">
                     <div class="mock-chart h-100">
                         <div class="d-flex justify-content-between align-items-center">
@@ -95,7 +93,7 @@
                     </div>
                 </div>
 
-                <!-- Top categories, driven by budget spend -->
+                <!-- Top categories -->
                 <div class="col-12 col-lg-5">
                     <div class="mock-chart h-100">
                         <h2 class="section-title mb-3">Top categories</h2>
@@ -116,13 +114,13 @@
                 </div>
             </div>
 
-            <!-- Recent transactions (placeholder until transactions exist) -->
+            <!-- Recent transactions -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="stat-card">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h2 class="section-title">Recent transactions</h2>
-                            <a href="#" class="section-link">See all</a>
+                            <a href="{{ route('expenses.index') }}" class="section-link">See all</a>
                         </div>
 
                         <div class="text-center py-5">
@@ -156,35 +154,54 @@
                 });
             };
 
+            const revealPage = () => {
+                if (loader) loader.style.display = 'none';
+                if (content) content.style.display = 'block';
+            };
+
+            // Always reveal the page after a maximum of 3 seconds
+            const timeoutId = setTimeout(revealPage, 3000);
+
             fetch('/api/budgets', {
                     headers: {
                         Accept: 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                 })
-                .then((res) => res.json())
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
                 .then((result) => {
-                    if (!result.success) return;
+                    if (!result.success) {
+                        console.warn('API returned unsuccessful:', result);
+                        return;
+                    }
 
                     const budgets = result.data;
                     const activeBudgets = budgets.filter((b) => b.is_active);
 
-                    // ---- Total budget stat card ----
+                    // Total budget stat card
                     const totalBudgeted = activeBudgets.reduce((sum, b) => sum + Number(b.amount), 0);
                     const totalSpent = activeBudgets.reduce((sum, b) => sum + Number(b.spent), 0);
                     const percentUsed = totalBudgeted > 0 ? Math.round((totalSpent / totalBudgeted) * 100) : 0;
 
-                    document.getElementById('totalBudgetValue').textContent = formatCurrency(totalBudgeted);
-                    document.getElementById('totalBudgetTrend').innerHTML =
-                        `<i class="fas fa-arrow-up"></i> ${percentUsed}% used`;
+                    const totalBudgetEl = document.getElementById('totalBudgetValue');
+                    const totalBudgetTrendEl = document.getElementById('totalBudgetTrend');
+                    if (totalBudgetEl) totalBudgetEl.textContent = formatCurrency(totalBudgeted);
+                    if (totalBudgetTrendEl) {
+                        totalBudgetTrendEl.innerHTML = `<i class="fas fa-arrow-up"></i> ${percentUsed}% used`;
+                    }
 
-                    // ---- Top categories list ----
+                    // Top categories list
                     const listEl = document.getElementById('topCategoriesList');
                     const emptyEl = document.getElementById('topCategoriesEmpty');
 
                     if (activeBudgets.length === 0) {
-                        listEl.innerHTML = '';
-                        emptyEl.classList.remove('d-none');
+                        if (listEl) listEl.innerHTML = '';
+                        if (emptyEl) emptyEl.classList.remove('d-none');
                         return;
                     }
 
@@ -208,14 +225,19 @@
                         `;
                     });
 
-                    listEl.innerHTML = html;
+                    if (listEl) listEl.innerHTML = html;
+                    if (emptyEl) emptyEl.classList.add('d-none');
                 })
                 .catch((err) => {
                     console.error('Error loading budget data:', err);
+                    const listEl = document.getElementById('topCategoriesList');
+                    const emptyEl = document.getElementById('topCategoriesEmpty');
+                    if (listEl) listEl.innerHTML = '';
+                    if (emptyEl) emptyEl.classList.remove('d-none');
                 })
                 .finally(() => {
-                    if (loader) loader.style.display = 'none';
-                    if (content) content.style.display = 'block';
+                    clearTimeout(timeoutId);
+                    revealPage();
                 });
         });
     </script>

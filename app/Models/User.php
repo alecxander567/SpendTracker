@@ -73,79 +73,106 @@ class User extends Authenticatable
         return $this->hasMany(Budget::class);
     }
 
-    // Commented out - Expense model doesn't exist yet
-    // public function expenses()
-    // {
-    //     return $this->hasMany(Expense::class);
-    // }
+    /**
+     * Get the expenses for the user.
+     */
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
 
-    // Commented out - SavingsGoal model doesn't exist yet
+    /**
+     * Get the savings goals for the user.
+     */
     // public function savingsGoals()
     // {
     //     return $this->hasMany(SavingsGoal::class);
     // }
 
-    // public function getTotalExpensesForMonth($month, $year): float
-    // {
-    //     return $this->expenses()
-    //         ->whereMonth('date', $month)
-    //         ->whereYear('date', $year)
-    //         ->whereHas('category', function ($query) {
-    //             $query->where('type', 'expense');
-    //         })
-    //         ->sum('amount');
-    // }
+    /**
+     * Get total expenses for a specific month and year.
+     */
+    public function getTotalExpensesForMonth($month, $year): float
+    {
+        return $this->expenses()
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->whereHas('category', function ($query) {
+                $query->where('type', 'expense');
+            })
+            ->sum('amount');
+    }
 
-    // public function getTotalIncomeForMonth($month, $year): float
-    // {
-    //     return $this->expenses()
-    //         ->whereMonth('date', $month)
-    //         ->whereYear('date', $year)
-    //         ->whereHas('category', function ($query) {
-    //             $query->where('type', 'income');
-    //         })
-    //         ->sum('amount');
-    // }
+    /**
+     * Get total income for a specific month and year.
+     */
+    public function getTotalIncomeForMonth($month, $year): float
+    {
+        return $this->expenses()
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->whereHas('category', function ($query) {
+                $query->where('type', 'income');
+            })
+            ->sum('amount');
+    }
 
-    // public function getNetCashFlow($month, $year): float
-    // {
-    //     return $this->getTotalIncomeForMonth($month, $year) - $this->getTotalExpensesForMonth($month, $year);
-    // }
+    /**
+     * Get net cash flow for a specific month and year.
+     */
+    public function getNetCashFlow($month, $year): float
+    {
+        return $this->getTotalIncomeForMonth($month, $year) - $this->getTotalExpensesForMonth($month, $year);
+    }
 
-    // public function getTotalSavings(): float
-    // {
-    //     return $this->savingsGoals()->sum('current_amount');
-    // }
+    /**
+     * Get total savings across all goals.
+     */
+    public function getTotalSavings(): float
+    {
+        // Temporarily return 0 until SavingsGoal model exists
+        return 0;
+        // return $this->savingsGoals()->sum('current_amount');
+    }
 
-    // public function getTotalBudgeted(): float
-    // {
-    //     return $this->budgets()
-    //         ->where('is_active', true)
-    //         ->sum('amount');
-    // }
+    /**
+     * Get total budgeted amount for active budgets.
+     */
+    public function getTotalBudgeted(): float
+    {
+        return $this->budgets()
+            ->where('is_active', true)
+            ->sum('amount');
+    }
 
-    // public function getDashboardSummary(): array
-    // {
-    //     $currentMonth = now()->month;
-    //     $currentYear = now()->year;
+    /**
+     * Get dashboard summary data.
+     */
+    public function getDashboardSummary(): array
+    {
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
 
-    //     return [
-    //         'monthly_income' => $this->getTotalIncomeForMonth($currentMonth, $currentYear),
-    //         'monthly_expenses' => $this->getTotalExpensesForMonth($currentMonth, $currentYear),
-    //         'net_cash_flow' => $this->getNetCashFlow($currentMonth, $currentYear),
-    //         'total_savings' => $this->getTotalSavings(),
-    //         'total_budgeted' => $this->getTotalBudgeted(),
-    //     ];
-    // }
+        return [
+            'monthly_income' => $this->getTotalIncomeForMonth($currentMonth, $currentYear),
+            'monthly_expenses' => $this->getTotalExpensesForMonth($currentMonth, $currentYear),
+            'net_cash_flow' => $this->getNetCashFlow($currentMonth, $currentYear),
+            'total_savings' => $this->getTotalSavings(),
+            'total_budgeted' => $this->getTotalBudgeted(),
+        ];
+    }
 
-    // public function getRecentExpenses($limit = 10)
-    // {
-    //     return $this->expenses()
-    //         ->with('category')
-    //         ->orderBy('date', 'desc')
-    //         ->limit($limit)
-    //         ->get();
-    // }
+    /**
+     * Get recent expenses.
+     */
+    public function getRecentExpenses($limit = 10)
+    {
+        return $this->expenses()
+            ->with('category')
+            ->orderBy('date', 'desc')
+            ->limit($limit)
+            ->get();
+    }
 
     public function getCurrencySymbol(): string
     {
