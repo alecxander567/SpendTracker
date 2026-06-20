@@ -15,10 +15,13 @@ RUN apt-get update && apt-get install -y \
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
+    && docker-php-ext-install -j$(nproc) pdo pdo_mysql mbstring exif pcntl bcmath gd zip \
+    && docker-php-ext-enable pdo_mysql
 
-# Verify the extension actually loaded
-RUN php -m | grep -i pdo_mysql
+# Hard verification — fail the build immediately and loudly if this extension
+# isn't actually wired in, instead of failing later inside artisan
+RUN php -r "if (!class_exists('Pdo\\Mysql')) { echo 'PDO_MYSQL NOT LOADED'; exit(1); } echo 'pdo_mysql OK';" \
+    && php -m | grep -i mysql
 
 # Enable mod_rewrite
 RUN a2enmod rewrite
@@ -29,15 +32,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files first (better layer caching)
-# The * makes composer.lock optional — won't fail the build if it's missing
+# Copy composer files first (better layer caching).
+# The * makes composer.lock optional — build won't fail if it's missing.
 COPY composer.json composer.lock* ./
 
-# Since there's no lock file, this resolves fresh versions at install time.
-# We also disable Composer's audit-blocking so unrelated security advisories
-# on transitive deps don't halt the build.
-RUN composer config --no-plugins allow-plugins.php-http/discovery true \
-    && composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --no-audit \
+# Install dependencies WITHOUT running scripts yet — artisan isn't safe to run
+# until the full app code is present. Disable audit-blocking so unrelated
+# security advisories on transitive deps don't halt the build.
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --no-audit \
     || composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --no-security-blocking
 
 # Now copy the rest of the application
