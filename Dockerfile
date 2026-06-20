@@ -10,20 +10,33 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
-    default-mysql-client \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-# (do NOT also call docker-php-ext-enable — docker-php-ext-install already
-# enables it, and calling both causes a duplicate .ini registration that
-# makes PHP silently refuse to load the module, even though it built fine)
-RUN docker-php-ext-configure gd \
-    && docker-php-ext-install -j$(nproc) pdo pdo_mysql mbstring exif pcntl bcmath gd zip
+# Installed in separate steps so a problem with one extension doesn't
+# silently affect the others, and so the build log clearly shows which
+# extension (if any) is failing.
+RUN docker-php-ext-install -j$(nproc) pdo
+RUN docker-php-ext-install -j$(nproc) pdo_pgsql
+RUN docker-php-ext-install -j$(nproc) mbstring exif pcntl bcmath
+RUN docker-php-ext-configure gd && docker-php-ext-install -j$(nproc) gd
+RUN docker-php-ext-install -j$(nproc) zip
+
+# Full diagnostic dump — shows exactly what PHP sees, so if this ever
+# fails again the log tells us precisely what's wrong instead of guessing
+RUN echo "=== Installed extension files ===" \
+    && ls -la /usr/local/lib/php/extensions/*/ \
+    && echo "=== Enabled .ini files ===" \
+    && ls -la /usr/local/etc/php/conf.d/ \
+    && echo "=== php -m output ===" \
+    && php -m \
+    && echo "=== php -i pdo section ===" \
+    && php -i | grep -i pdo
 
 # Hard verification — fail the build immediately and loudly if this extension
 # isn't actually wired in, instead of failing later inside artisan
-RUN php -r "if (!class_exists('Pdo\\Mysql')) { echo 'PDO_MYSQL NOT LOADED'; exit(1); } echo 'pdo_mysql OK';" \
-    && php -m | grep -i mysql
+RUN php -r "if (!class_exists('Pdo\\Pgsql')) { echo 'PDO_PGSQL NOT LOADED'; exit(1); } echo 'pdo_pgsql OK';"
 
 # Enable mod_rewrite
 RUN a2enmod rewrite
