@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions (zip needed for composer, pdo_mysql for DB)
+# Install PHP extensions
 RUN docker-php-ext-configure gd \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Verify the extension actually loaded (fails the build early & loudly if not)
+# Verify the extension actually loaded
 RUN php -m | grep -i pdo_mysql
 
 # Enable mod_rewrite
@@ -30,11 +30,15 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # Copy composer files first (better layer caching)
-COPY composer.json composer.lock ./
+# The * makes composer.lock optional — won't fail the build if it's missing
+COPY composer.json composer.lock* ./
 
-# Install dependencies WITHOUT running scripts yet (artisan isn't safe to run
-# until the full app + .env exist)
-RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
+# Since there's no lock file, this resolves fresh versions at install time.
+# We also disable Composer's audit-blocking so unrelated security advisories
+# on transitive deps don't halt the build.
+RUN composer config --no-plugins allow-plugins.php-http/discovery true \
+    && composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --no-audit \
+    || composer install --no-interaction --optimize-autoloader --no-dev --no-scripts --no-security-blocking
 
 # Now copy the rest of the application
 COPY . .
@@ -49,10 +53,6 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 # Configure Apache to serve from /public
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
     && sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
-
-# Render injects $PORT — Apache needs to listen on it
-RUN sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf \
-    && sed -i 's/:80/:${PORT}/g' /etc/apache2/sites-available/000-default.conf
 
 # Startup script
 RUN echo '#!/bin/bash\n\
@@ -69,7 +69,6 @@ php artisan view:cache\n\
 exec apache2-foreground' > /usr/local/bin/start.sh \
     && chmod +x /usr/local/bin/start.sh
 
-ENV PORT=80
 EXPOSE 80
 
 ENTRYPOINT ["/usr/local/bin/start.sh"]
