@@ -508,3 +508,518 @@ body {
     z-index: 9999;
     backdrop-filter: blur(2px);
 }
+
+/* ===== Weekly spend chart bars (matches hero-card gradient) ============== */
+
+#weeklySpendChart .weekly-bar-track {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(180deg, var(--magma-core), var(--magma-deep));
+    opacity: 0.9;
+    transition: opacity 0.15s ease;
+}
+
+#weeklySpendChart .weekly-bar-track.is-today {
+    opacity: 1;
+    background: linear-gradient(
+        180deg,
+        var(--spectrum-violet),
+        var(--magma-core)
+    );
+}
+
+#weeklySpendChart .weekly-bar-track:hover {
+    opacity: 1;
+}
+
+#weeklySpendChart .weekly-bar-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+}
+
+#weeklySpendChart .weekly-bar-label.is-today {
+    color: var(--magma-core);
+    font-weight: 700;
+}
+
+/* ===== Savings Goals Card ================================================ */
+
+.savings-goal-item {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.savings-goal-item:last-child {
+    border-bottom: none;
+}
+
+.savings-goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.savings-goal-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.savings-goal-amount {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.savings-goal-progress {
+    height: 4px;
+    border-radius: 999px;
+    background-color: #f0eeec;
+    overflow: hidden;
+    margin-top: 0.25rem;
+}
+
+.savings-goal-progress-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(
+        90deg,
+        var(--magma-core),
+        var(--spectrum-violet)
+    );
+    transition: width 0.3s ease;
+}
+
+.savings-goal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.25rem;
+}
+
+.savings-goal-progress-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.savings-goal-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.savings-goal-actions .btn-sm {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+}
+
+/* Priority badges */
+.priority-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+}
+
+.priority-badge.high {
+    background: rgba(255, 77, 28, 0.12);
+    color: var(--magma-deep);
+}
+
+.priority-badge.medium {
+    background: rgba(255, 193, 7, 0.14);
+    color: #d39e00;
+}
+
+.priority-badge.low {
+    background: rgba(13, 202, 240, 0.14);
+    color: #0d6efd;
+}
+
+/* Savings category icon */
+.savings-goal-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.7rem;
+}
+
+.savings-goal-icon.emergency {
+    background: rgba(255, 77, 28, 0.12);
+    color: var(--magma-deep);
+}
+
+.savings-goal-icon.vacation {
+    background: rgba(13, 202, 240, 0.14);
+    color: #0d6efd;
+}
+
+.savings-goal-icon.education {
+    background: rgba(124, 58, 237, 0.12);
+    color: var(--spectrum-violet);
+}
+
+.savings-goal-icon.home {
+    background: rgba(255, 193, 7, 0.14);
+    color: #d39e00;
+}
+
+.savings-goal-icon.vehicle {
+    background: rgba(45, 212, 191, 0.14);
+    color: #0d9488;
+}
+
+.savings-goal-icon.retirement {
+    background: rgba(13, 202, 240, 0.14);
+    color: #0d6efd;
+}
+
+.savings-goal-icon.other {
+    background: rgba(108, 117, 125, 0.14);
+    color: #6c757d;
+}
+/* Savings Goal Affordability */
+.savings-goal-affordability {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+}
+
+.savings-goal-affordability.affordable {
+    background: rgba(45, 212, 191, 0.14);
+    color: #0d9488;
+}
+
+.savings-goal-affordability.unaffordable {
+    background: rgba(255, 77, 28, 0.12);
+    color: var(--magma-deep);
+}
+
+.savings-goal-amount-detail {
+    font-size: 0.7rem;
+}
+
+/* Savings Goal Actions */
+.savings-goal-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.savings-goal-actions .btn-sm {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+}
+
+.savings-goal-actions .btn-outline-primary {
+    color: var(--spectrum-violet);
+    border-color: var(--spectrum-violet);
+}
+
+.savings-goal-actions .btn-outline-primary:hover {
+    background: var(--spectrum-violet);
+    color: #fff;
+}
+
+.savings-goal-actions .btn-outline-danger {
+    color: var(--magma-deep);
+    border-color: var(--magma-deep);
+}
+
+.savings-goal-actions .btn-outline-danger:hover {
+    background: var(--magma-deep);
+    color: #fff;
+}
+/* ===== Scrollable Content ================================================ */
+
+.scrollable-content {
+    max-height: 400px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.scrollable-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-track {
+    background: var(--bg-page);
+    border-radius: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb {
+    background: var(--magma-core);
+    border-radius: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb:hover {
+    background: var(--magma-deep);
+}
+
+/* Firefox scrollbar styling */
+.scrollable-content {
+    scrollbar-width: thin;
+    scrollbar-color: var(--magma-core) var(--bg-page);
+}
+
+/* Recent Transactions Container */
+#recentTransactionsContainer .txn-row {
+    padding: 0.6rem 0;
+}
+
+#recentTransactionsContainer .txn-row:last-child {
+    border-bottom: none;
+}
+
+/* Wishlist Container */
+#wishlistContainer .savings-goal-item {
+    padding: 0.5rem 0;
+}
+
+#wishlistContainer .savings-goal-item:last-child {
+    border-bottom: none;
+}
+
+/* Ensure cards have consistent height */
+.stat-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-card .scrollable-content {
+    flex: 1;
+    min-height: 200px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .scrollable-content {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 576px) {
+    .scrollable-content {
+        max-height: 250px;
+    }
+}
+/* ===== Wishlist Actions - Improved ======================================== */
+
+.savings-goal-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--border-soft);
+}
+
+.savings-goal-actions .btn-sm {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.savings-goal-actions .btn-sm i {
+    font-size: 0.7rem;
+}
+
+/* Edit Button */
+.savings-goal-actions .btn-edit {
+    color: var(--spectrum-violet);
+    background: rgba(124, 58, 237, 0.08);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+.savings-goal-actions .btn-edit:hover {
+    background: var(--spectrum-violet);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.savings-goal-actions .btn-edit:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Delete Button */
+.savings-goal-actions .btn-delete {
+    color: var(--magma-deep);
+    background: rgba(194, 24, 91, 0.08);
+    border: 1px solid rgba(194, 24, 91, 0.2);
+}
+
+.savings-goal-actions .btn-delete:hover {
+    background: var(--magma-deep);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(194, 24, 91, 0.3);
+}
+
+.savings-goal-actions .btn-delete:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Tooltip styling */
+.savings-goal-actions [data-tooltip] {
+    position: relative;
+    cursor: pointer;
+}
+
+.savings-goal-actions [data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: var(--bg-sidebar);
+    color: var(--text-on-dark);
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.6rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.savings-goal-actions [data-tooltip]:hover:before {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+.savings-goal-actions [data-tooltip]:after {
+    content: "";
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    border: 4px solid transparent;
+    border-top-color: var(--bg-sidebar);
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.savings-goal-actions [data-tooltip]:hover:after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+/* Mobile adjustments */
+@media (max-width: 576px) {
+    .savings-goal-actions .btn-sm {
+        font-size: 0.6rem;
+        padding: 0.15rem 0.4rem;
+    }
+
+    .savings-goal-actions .btn-sm i {
+        font-size: 0.6rem;
+    }
+}
+/* ===== Wishlist Actions - Improved Buttons ================================= */
+
+.savings-goal-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--border-soft);
+}
+
+.savings-goal-actions .btn-sm {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.savings-goal-actions .btn-sm i {
+    font-size: 0.7rem;
+}
+
+/* Edit Button */
+.savings-goal-actions .btn-edit {
+    color: #6c5ce7;
+    background: rgba(108, 92, 231, 0.08);
+    border-color: rgba(108, 92, 231, 0.2);
+}
+
+.savings-goal-actions .btn-edit:hover {
+    background: #6c5ce7;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+    border-color: #6c5ce7;
+}
+
+.savings-goal-actions .btn-edit:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(108, 92, 231, 0.25);
+}
+
+/* Delete Button */
+.savings-goal-actions .btn-delete {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.08);
+    border-color: rgba(231, 76, 60, 0.2);
+}
+
+.savings-goal-actions .btn-delete:hover {
+    background: #e74c3c;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.35);
+    border-color: #e74c3c;
+}
+
+.savings-goal-actions .btn-delete:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(231, 76, 60, 0.25);
+}
+
+/* Button focus states */
+.savings-goal-actions .btn-sm:focus-visible {
+    outline: 2px solid var(--magma-core);
+    outline-offset: 2px;
+}
+
+/* Disabled state */
+.savings-goal-actions .btn-sm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 576px) {
+    .savings-goal-actions .btn-sm {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.5rem;
+        gap: 0.2rem;
+    }
+
+    .savings-goal-actions .btn-sm i {
+        font-size: 0.6rem;
+    }
+}

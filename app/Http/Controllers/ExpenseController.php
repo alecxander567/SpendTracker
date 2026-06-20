@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
+use App\Models\Budget;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +18,7 @@ class ExpenseController extends Controller
     {
         try {
             $expenses = Expense::where('user_id', $request->user()->id)
-                ->with(['category'])
+                ->with(['category', 'budget'])
                 ->orderBy('date', 'desc')
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -28,6 +29,9 @@ class ExpenseController extends Controller
                         'category_name' => $expense->category->name,
                         'category_color' => $expense->category->color,
                         'category_type' => $expense->category->type,
+                        'budget_id' => $expense->budget_id,
+                        'budget_amount' => $expense->budget ? $expense->budget->amount : null,
+                        'budget_remaining' => $expense->budget ? $expense->budget->getRemainingAmount() : null,
                         'amount' => $expense->amount,
                         'formatted_amount' => $expense->getFormattedAmount(),
                         'description' => $expense->description,
@@ -73,6 +77,14 @@ class ExpenseController extends Controller
                         return $query->where('user_id', $request->user()->id);
                     })
                 ],
+                'budget_id' => [
+                    'nullable',
+                    'exists:budgets,id',
+                    Rule::exists('budgets', 'id')->where(function ($query) use ($request) {
+                        return $query->where('user_id', $request->user()->id)
+                            ->where('is_active', true);
+                    })
+                ],
                 'amount' => ['required', 'numeric', 'min:0.01'],
                 'description' => ['nullable', 'string', 'max:1000'],
                 'date' => ['required', 'date'],
@@ -83,6 +95,7 @@ class ExpenseController extends Controller
             ], [
                 'category_id.required' => 'Category is required',
                 'category_id.exists' => 'Selected category does not exist',
+                'budget_id.exists' => 'Selected budget does not exist or is not active',
                 'amount.required' => 'Amount is required',
                 'amount.min' => 'Amount must be greater than 0',
                 'date.required' => 'Date is required',
@@ -101,9 +114,39 @@ class ExpenseController extends Controller
                 ], 422);
             }
 
+            // If budget_id is provided, verify the category matches
+            if ($request->budget_id) {
+                $budget = Budget::where('id', $request->budget_id)
+                    ->where('user_id', $request->user()->id)
+                    ->first();
+
+                if ($budget && $budget->category_id != $request->category_id) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The selected budget does not belong to the selected category',
+                        'errors' => [
+                            'budget_id' => ['Budget category does not match expense category']
+                        ]
+                    ], 422);
+                }
+
+                // Check if budget has enough remaining amount
+                $remaining = $budget->getRemainingAmount();
+                if ($request->amount > $remaining) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Insufficient budget remaining',
+                        'errors' => [
+                            'amount' => ['This expense exceeds the remaining budget of ' . $request->user()->formatCurrency($remaining)]
+                        ]
+                    ], 422);
+                }
+            }
+
             $expense = Expense::create([
                 'user_id' => $request->user()->id,
                 'category_id' => $request->category_id,
+                'budget_id' => $request->budget_id,
                 'amount' => $request->amount,
                 'description' => $request->description,
                 'date' => $request->date,
@@ -113,13 +156,16 @@ class ExpenseController extends Controller
                 'recurring_frequency' => $request->is_recurring ? $request->recurring_frequency : null,
             ]);
 
-            // Load the category relationship
-            $expense->load('category');
+            // Load relationships
+            $expense->load(['category', 'budget']);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Expense created successfully',
-                'data' => $expense
+                'data' => [
+                    'expense' => $expense,
+                    'budget_remaining' => $expense->budget ? $expense->budget->getRemainingAmount() : null,
+                ]
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -137,7 +183,7 @@ class ExpenseController extends Controller
     {
         try {
             $expense = Expense::where('user_id', $request->user()->id)
-                ->with(['category'])
+                ->with(['category', 'budget'])
                 ->find($id);
 
             if (!$expense) {
@@ -184,6 +230,14 @@ class ExpenseController extends Controller
                         return $query->where('user_id', $request->user()->id);
                     })
                 ],
+                'budget_id' => [
+                    'nullable',
+                    'exists:budgets,id',
+                    Rule::exists('budgets', 'id')->where(function ($query) use ($request) {
+                        return $query->where('user_id', $request->user()->id)
+                            ->where('is_active', true);
+                    })
+                ],
                 'amount' => ['sometimes', 'numeric', 'min:0.01'],
                 'description' => ['nullable', 'string', 'max:1000'],
                 'date' => ['sometimes', 'date'],
@@ -207,6 +261,39 @@ class ExpenseController extends Controller
                 ], 422);
             }
 
+            // If budget_id is provided, verify the category matches
+            if ($request->has('budget_id') && $request->budget_id) {
+                $budget = Budget::where('id', $request->budget_id)
+                    ->where('user_id', $request->user()->id)
+                    ->first();
+
+                $categoryId = $request->category_id ?? $expense->category_id;
+
+                if ($budget && $budget->category_id != $categoryId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The selected budget does not belong to the selected category',
+                        'errors' => [
+                            'budget_id' => ['Budget category does not match expense category']
+                        ]
+                    ], 422);
+                }
+
+                // Check if budget has enough remaining amount
+                $amount = $request->amount ?? $expense->amount;
+                $remaining = $budget->getRemainingAmount() + ($expense->budget_id == $request->budget_id ? $expense->amount : 0);
+
+                if ($amount > $remaining) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Insufficient budget remaining',
+                        'errors' => [
+                            'amount' => ['This expense exceeds the remaining budget of ' . $request->user()->formatCurrency($remaining)]
+                        ]
+                    ], 422);
+                }
+            }
+
             $data = $request->all();
 
             // Handle recurring frequency
@@ -215,12 +302,15 @@ class ExpenseController extends Controller
             }
 
             $expense->update($data);
-            $expense->load('category');
+            $expense->load(['category', 'budget']);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Expense updated successfully',
-                'data' => $expense
+                'data' => [
+                    'expense' => $expense,
+                    'budget_remaining' => $expense->budget ? $expense->budget->getRemainingAmount() : null,
+                ]
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -442,6 +532,118 @@ class ExpenseController extends Controller
                 'success' => false,
                 'message' => 'Failed to fetch recurring expenses',
                 'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    /**
+     * Get spending for yesterday, today, and tomorrow.
+     * Rewritten to avoid raw SQL DATE() — that function's behavior differs
+     * across MySQL/Postgres/SQLite and was the likely source of a fatal
+     * 500 error that bypassed the JSON error response. This version pulls
+     * the raw rows and groups them in PHP instead, so it works the same
+     * regardless of which database driver is configured.
+     */
+    public function getWeeklySpending(Request $request)
+    {
+        try {
+            $startOfWeek = now()->startOfWeek();
+            $endOfWeek = now()->endOfWeek();
+
+            $expenses = Expense::where('user_id', $request->user()->id)
+                ->whereHas('category', fn($q) => $q->where('type', 'expense'))
+                ->whereBetween('date', [$startOfWeek, $endOfWeek])
+                ->get(['date', 'amount']);
+
+            // Group totals by plain Y-m-d string, entirely in PHP —
+            // no raw SQL date functions involved (that was the earlier
+            // Postgres-incompatible DATE() bug).
+            $totalsByDay = [];
+            foreach ($expenses as $expense) {
+                $key = $expense->date->format('Y-m-d');
+                $totalsByDay[$key] = ($totalsByDay[$key] ?? 0) + (float) $expense->amount;
+            }
+
+            $days = [];
+            $cursor = $startOfWeek->copy();
+            while ($cursor <= $endOfWeek) {
+                $key = $cursor->format('Y-m-d');
+                $days[] = [
+                    'date' => $key,
+                    'label' => $cursor->format('D'),
+                    'isToday' => $cursor->isToday(),
+                    'total' => $totalsByDay[$key] ?? 0.0,
+                ];
+                $cursor->addDay();
+            }
+
+            return response()->json(['success' => true, 'data' => $days], 200);
+        } catch (\Throwable $e) {
+            // Catching \Throwable (not just \Exception) so fatal errors are
+            // also returned as JSON instead of a raw, uninformative 500 page.
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch weekly spending',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    /**
+     * Get top spending categories for the current week.
+     * This is the endpoint your dashboard's "top categories" widget should call —
+     * it did not exist before, which is why that widget had nothing to show.
+     */
+    public function getTopCategoriesWeekly(Request $request)
+    {
+        try {
+            $startOfWeek = now()->startOfWeek();
+            $endOfWeek = now()->endOfWeek();
+
+            $limit = (int) ($request->query('limit', 5));
+
+            $topCategories = Expense::where('user_id', $request->user()->id)
+                ->whereHas('category', fn($q) => $q->where('type', 'expense'))
+                ->whereBetween('date', [$startOfWeek, $endOfWeek])
+                ->with('category')
+                ->selectRaw('category_id, SUM(amount) as total')
+                ->groupBy('category_id')
+                ->orderByDesc('total')
+                ->limit($limit)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'category_id' => $item->category_id,
+                        'category_name' => $item->category->name,
+                        'category_color' => $item->category->color,
+                        'total' => (float) $item->total,
+                    ];
+                });
+
+            $weekTotal = $topCategories->sum('total');
+
+            // Attach percentage share of the week's spend, useful for progress bars / pie charts
+            $topCategories = $topCategories->map(function ($item) use ($weekTotal) {
+                $item['percentage'] = $weekTotal > 0
+                    ? round(($item['total'] / $weekTotal) * 100, 2)
+                    : 0.0;
+                return $item;
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'start_date' => $startOfWeek->format('Y-m-d'),
+                    'end_date' => $endOfWeek->format('Y-m-d'),
+                    'week_total' => (float) $weekTotal,
+                    'categories' => $topCategories,
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch top categories',
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }

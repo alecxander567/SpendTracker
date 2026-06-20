@@ -64,6 +64,7 @@
                                         <th style="width: 50px;">#</th>
                                         <th>Date</th>
                                         <th>Category</th>
+                                        <th>Budget</th>
                                         <th>Description</th>
                                         <th>Amount</th>
                                         <th>Payment</th>
@@ -72,7 +73,7 @@
                                 </thead>
                                 <tbody id="expensesTableBody">
                                     <tr>
-                                        <td colspan="7" class="text-center py-5">
+                                        <td colspan="8" class="text-center py-5">
                                             <x-loading-spinner />
                                         </td>
                                     </tr>
@@ -139,6 +140,18 @@
                                     <option value="">Select a category</option>
                                 </select>
                                 <div class="invalid-feedback" id="expenseCategoryError"></div>
+                            </div>
+
+                            <!-- Budget Selection -->
+                            <div class="col-12" id="budgetSelectionWrap">
+                                <label for="expenseBudget" class="form-label fw-semibold">Budget <span
+                                        class="text-muted fw-normal">(optional)</span></label>
+                                <select class="form-select" id="expenseBudget" name="budget_id">
+                                    <option value="">No budget (track separately)</option>
+                                </select>
+                                <div class="form-text" id="budgetRemainingInfo">Select a category first to see available
+                                    budgets.</div>
+                                <div class="invalid-feedback" id="expenseBudgetError"></div>
                             </div>
 
                             <!-- Payment Method -->
@@ -231,19 +244,19 @@
 
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteExpenseModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold" style="color: var(--magma-deep);">Delete Transaction</h5>
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color: var(--magma-deep);">Delete Transaction</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center py-4">
                     <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--magma-deep);"></i>
-                    <p class="mt-3 mb-0">Are you sure you want to delete this transaction?</p>
+                    <p class="mt-3 mb-0">Are you sure you want to delete <strong id="deleteExpenseName"></strong>?</p>
                     <p class="text-muted small">This action cannot be undone.</p>
                     <input type="hidden" id="deleteExpenseId">
                 </div>
-                <div class="modal-footer border-0 justify-content-center">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
                         <span id="deleteBtnText">Delete</span>

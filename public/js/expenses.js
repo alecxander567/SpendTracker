@@ -17,6 +17,8 @@ const Expenses = (() => {
         expenseId: document.getElementById("expenseId"),
         amount: document.getElementById("expenseAmount"),
         category: document.getElementById("expenseCategory"),
+        budget: document.getElementById("expenseBudget"),
+        budgetRemainingInfo: document.getElementById("budgetRemainingInfo"),
         date: document.getElementById("expenseDate"),
         description: document.getElementById("expenseDescription"),
         isRecurring: document.getElementById("expenseIsRecurring"),
@@ -31,6 +33,7 @@ const Expenses = (() => {
         saveBtnSpinner: document.getElementById("saveBtnSpinner"),
         deleteModal: document.getElementById("deleteExpenseModal"),
         deleteExpenseId: document.getElementById("deleteExpenseId"),
+        deleteExpenseName: document.getElementById("deleteExpenseName"),
         confirmDeleteBtn: document.getElementById("confirmDeleteBtn"),
         deleteBtnText: document.getElementById("deleteBtnText"),
         deleteBtnSpinner: document.getElementById("deleteBtnSpinner"),
@@ -43,6 +46,7 @@ const Expenses = (() => {
     const errorElements = {
         amount: document.getElementById("expenseAmountError"),
         category_id: document.getElementById("expenseCategoryError"),
+        budget_id: document.getElementById("expenseBudgetError"),
         date: document.getElementById("expenseDateError"),
         payment_method: document.getElementById("expensePaymentMethodError"),
         description: document.getElementById("expenseDescriptionError"),
@@ -59,6 +63,9 @@ const Expenses = (() => {
 
     // Current filter type
     let currentFilter = "all";
+
+    // Cache available budgets
+    let availableBudgets = [];
 
     const csrfToken = () =>
         document.querySelector('meta[name="csrf-token"]')?.content || "";
@@ -130,6 +137,8 @@ const Expenses = (() => {
                     "change",
                     toggleRecurringFrequency,
                 );
+            if (elements.category)
+                elements.category.addEventListener("change", onCategoryChange);
 
             // Tab clicks
             elements.tabs.forEach((tab) => {
@@ -140,8 +149,7 @@ const Expenses = (() => {
             });
 
             // Load categories and expenses
-            loadCategories()
-                .then(() => loadExpenses("all"))
+            Promise.all([loadCategories(), loadBudgets(), loadExpenses("all")])
                 .catch((err) => {
                     console.error("Error during initialization:", err);
                 })
@@ -195,6 +203,90 @@ const Expenses = (() => {
         } catch (error) {
             console.error("Error loading categories:", error);
         }
+    };
+
+    /**
+     * Load available budgets for dropdown
+     */
+    const loadBudgets = async () => {
+        try {
+            console.log("Loading budgets...");
+            const response = await fetch("/api/budgets/active-budgets", {
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken(),
+                },
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                availableBudgets = result.data;
+                console.log("Budgets loaded:", availableBudgets.length);
+            }
+        } catch (error) {
+            console.error("Error loading budgets:", error);
+        }
+    };
+
+    /**
+     * Handle category change - update budget dropdown
+     */
+    const onCategoryChange = () => {
+        const categoryId = elements.category.value;
+        const budgetSelect = elements.budget;
+        const remainingInfo = elements.budgetRemainingInfo;
+
+        // Clear budget dropdown
+        budgetSelect.innerHTML =
+            '<option value="">No budget (track separately)</option>';
+
+        if (!categoryId) {
+            remainingInfo.textContent =
+                "Select a category first to see available budgets.";
+            return;
+        }
+
+        // Filter budgets by category
+        const filteredBudgets = availableBudgets.filter(
+            (b) => b.category_id == categoryId && b.remaining > 0,
+        );
+
+        if (filteredBudgets.length === 0) {
+            remainingInfo.textContent =
+                "No active budgets with remaining balance for this category.";
+            return;
+        }
+
+        // Add budget options
+        filteredBudgets.forEach((budget) => {
+            const opt = document.createElement("option");
+            opt.value = budget.id;
+            opt.textContent = `${budget.category_name} - ${formatCurrency(budget.remaining)} remaining (${budget.period_label})`;
+            opt.dataset.remaining = budget.remaining;
+            budgetSelect.appendChild(opt);
+        });
+
+        // Update info text
+        if (filteredBudgets.length === 1) {
+            remainingInfo.textContent = `1 budget available with ${formatCurrency(filteredBudgets[0].remaining)} remaining.`;
+        } else {
+            remainingInfo.textContent = `${filteredBudgets.length} budgets available. Select one to track against.`;
+        }
+    };
+
+    /**
+     * Format currency
+     */
+    const formatCurrency = (value) => {
+        const num = Number(value) || 0;
+        return (
+            "₱" +
+            num.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            })
+        );
     };
 
     /**
@@ -254,6 +346,16 @@ const Expenses = (() => {
             const amountClass =
                 expense.type === "Income" ? "text-success" : "text-danger";
             const amountPrefix = expense.type === "Income" ? "+" : "-";
+            const rowLabel = expense.description || expense.category_name;
+
+            // Budget info
+            let budgetInfo = "-";
+            if (expense.budget_id) {
+                budgetInfo = `<span class="badge bg-info">Budget: ${formatCurrency(expense.budget_amount || 0)}</span>`;
+                if (expense.budget_remaining !== undefined) {
+                    budgetInfo += `<br><small class="text-muted">Remaining: ${formatCurrency(expense.budget_remaining)}</small>`;
+                }
+            }
 
             html += `
                 <tr>
@@ -264,6 +366,7 @@ const Expenses = (() => {
                             ${expense.category_name}
                         </span>
                     </td>
+                    <td>${budgetInfo}</td>
                     <td>${expense.description || "-"}</td>
                     <td class="fw-bold ${amountClass}">${amountPrefix}${expense.formatted_amount || expense.amount}</td>
                     <td>
@@ -274,7 +377,7 @@ const Expenses = (() => {
                         <button class="btn btn-sm btn-outline-primary edit-expense" data-id="${expense.id}" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger delete-expense" data-id="${expense.id}" title="Delete">
+                        <button class="btn btn-sm btn-outline-danger delete-expense" data-id="${expense.id}" data-name="${escapeHtml(rowLabel)}" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -294,9 +397,18 @@ const Expenses = (() => {
         // Delete buttons
         document.querySelectorAll(".delete-expense").forEach((btn) => {
             btn.addEventListener("click", function () {
-                openDeleteModal(this.dataset.id);
+                openDeleteModal(this.dataset.id, this.dataset.name);
             });
         });
+    };
+
+    /**
+     * Escape HTML for safe interpolation into data attributes
+     */
+    const escapeHtml = (str) => {
+        const div = document.createElement("div");
+        div.textContent = str ?? "";
+        return div.innerHTML;
     };
 
     /**
@@ -309,6 +421,15 @@ const Expenses = (() => {
         elements.recurringFrequencyWrap.classList.add("d-none");
         elements.isRecurring.checked = false;
         elements.date.value = new Date().toISOString().split("T")[0];
+
+        // Reset budget dropdown
+        const budgetSelect = elements.budget;
+        budgetSelect.innerHTML =
+            '<option value="">No budget (track separately)</option>';
+        if (elements.budgetRemainingInfo) {
+            elements.budgetRemainingInfo.textContent =
+                "Select a category first to see available budgets.";
+        }
 
         if (id) {
             elements.modalTitle.textContent = "Edit Expense";
@@ -331,6 +452,14 @@ const Expenses = (() => {
                     elements.date.value = expense.date;
                     elements.description.value = expense.description || "";
                     elements.isRecurring.checked = expense.is_recurring;
+
+                    // Trigger category change to load budgets
+                    await onCategoryChange();
+
+                    // Set budget if exists
+                    if (expense.budget_id) {
+                        elements.budget.value = expense.budget_id;
+                    }
 
                     if (expense.is_recurring) {
                         elements.recurringFrequencyWrap.classList.remove(
@@ -369,9 +498,11 @@ const Expenses = (() => {
             'input[name="payment_method"]:checked',
         );
         const isRecurring = elements.isRecurring.checked;
+        const budgetId = elements.budget.value;
 
         const formData = {
             category_id: elements.category.value,
+            budget_id: budgetId || null,
             amount: elements.amount.value,
             description: elements.description.value.trim(),
             date: elements.date.value,
@@ -405,6 +536,23 @@ const Expenses = (() => {
             return;
         }
 
+        // Check if budget has enough remaining
+        if (budgetId) {
+            const selectedBudget = availableBudgets.find(
+                (b) => b.id == budgetId,
+            );
+            if (
+                selectedBudget &&
+                Number(formData.amount) > Number(selectedBudget.remaining)
+            ) {
+                setError(
+                    "budget_id",
+                    `Insufficient budget. Only ${formatCurrency(selectedBudget.remaining)} remaining.`,
+                );
+                return;
+            }
+        }
+
         setLoading(true);
 
         try {
@@ -422,6 +570,8 @@ const Expenses = (() => {
 
             if (response.status === 201 || response.status === 200) {
                 expenseModal.hide();
+                // Refresh budgets and expenses
+                await loadBudgets();
                 loadExpenses(currentFilter);
                 showSuccess(result.message || "Expense saved successfully.");
             } else if (response.status === 422) {
@@ -440,8 +590,11 @@ const Expenses = (() => {
     /**
      * Open delete confirmation
      */
-    const openDeleteModal = (id) => {
+    const openDeleteModal = (id, name) => {
         elements.deleteExpenseId.value = id;
+        if (elements.deleteExpenseName) {
+            elements.deleteExpenseName.textContent = name || "this transaction";
+        }
         deleteModal.show();
     };
 
@@ -466,6 +619,7 @@ const Expenses = (() => {
 
             if (result.success) {
                 deleteModal.hide();
+                await loadBudgets();
                 loadExpenses(currentFilter);
                 showSuccess(result.message || "Expense deleted successfully.");
             } else {
@@ -500,6 +654,7 @@ const Expenses = (() => {
         const inputMap = {
             amount: elements.amount,
             category_id: elements.category,
+            budget_id: elements.budget,
             date: elements.date,
             description: elements.description,
             recurring_frequency: elements.recurringFrequency,
@@ -534,7 +689,7 @@ const Expenses = (() => {
     const showLoading = () => {
         elements.tableBody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center py-5">
+                <td colspan="8" class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>

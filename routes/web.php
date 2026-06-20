@@ -6,8 +6,18 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\SavingsGoalController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\PingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// ============================================
+// PING / HEALTH CHECK (for uptime monitoring)
+// ============================================
+Route::get('/ping', [PingController::class, 'ping'])->name('ping');
+Route::get('/ping/simple', [PingController::class, 'simplePing'])->name('ping.simple');
+Route::get('/health', [PingController::class, 'healthCheck'])->name('health');
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/', function () {
@@ -87,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('api/budgets')->group(function () {
         Route::get('/', [BudgetController::class, 'index']);
         Route::get('/active', [BudgetController::class, 'getActive']);
+        Route::get('/active-budgets', [BudgetController::class, 'getActiveBudgets']);
         Route::get('/summary', [BudgetController::class, 'getSummary']);
         Route::post('/', [BudgetController::class, 'store']);
         Route::get('/{id}', [BudgetController::class, 'show']);
@@ -121,6 +132,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/month', [ExpenseController::class, 'getByMonth']);
         Route::get('/summary', [ExpenseController::class, 'getSummary']);
         Route::get('/recurring', [ExpenseController::class, 'getRecurring']);
+        Route::get('/weekly', [ExpenseController::class, 'getWeeklySpending']);
+        Route::get('/top-categories-weekly', [ExpenseController::class, 'getTopCategoriesWeekly']);
         Route::post('/', [ExpenseController::class, 'store']);
         Route::get('/{id}', [ExpenseController::class, 'show']);
         Route::put('/{id}', [ExpenseController::class, 'update']);
@@ -161,5 +174,85 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}', [IncomeController::class, 'update']);
         Route::delete('/{id}', [IncomeController::class, 'destroy']);
         Route::patch('/{id}/toggle-active', [IncomeController::class, 'toggleActive']);
+    });
+
+    // ============================================
+    // SAVINGS GOALS
+    // ============================================
+    // Savings Goals Web Routes (for views)
+    Route::get('/savings', function () {
+        return response()
+            ->view('savings.index')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    })->name('savings.index');
+
+    Route::get('/savings/create', function () {
+        return view('savings.create');
+    })->name('savings.create');
+
+    Route::get('/savings/{id}/edit', function ($id) {
+        return view('savings.edit', ['id' => $id]);
+    })->name('savings.edit');
+
+    // Savings Goals API routes (for AJAX requests)
+    Route::prefix('api/savings')->group(function () {
+        Route::get('/', [SavingsGoalController::class, 'index']);
+        Route::get('/statistics', [SavingsGoalController::class, 'statistics']);
+        Route::post('/', [SavingsGoalController::class, 'store']);
+        Route::post('/{id}/add-funds', [SavingsGoalController::class, 'addFunds']);
+        Route::post('/{id}/withdraw-funds', [SavingsGoalController::class, 'withdrawFunds']);
+        Route::get('/{id}', [SavingsGoalController::class, 'show']);
+        Route::put('/{id}', [SavingsGoalController::class, 'update']);
+        Route::delete('/{id}', [SavingsGoalController::class, 'destroy']);
+    });
+
+    // ============================================
+    // SETTINGS
+    // ============================================
+    // Settings Web Routes (for views)
+    Route::get('/settings', function () {
+        return response()
+            ->view('settings.index')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    })->name('settings.index');
+
+    Route::get('/settings/profile', function () {
+        return response()
+            ->view('settings.profile')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    })->name('settings.profile');
+
+    Route::get('/settings/preferences', function () {
+        return response()
+            ->view('settings.preferences')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    })->name('settings.preferences');
+
+    // Settings API routes (for AJAX requests)
+    Route::prefix('api/settings')->group(function () {
+        // Profile
+        Route::get('/profile', [SettingsController::class, 'profile']);
+        Route::put('/profile', [SettingsController::class, 'updateProfile']);
+
+        // Password
+        Route::put('/password', [SettingsController::class, 'updatePassword']);
+
+        // Preferences
+        Route::put('/preferences', [SettingsController::class, 'updatePreferences']);
+
+        // Account
+        Route::delete('/account', [SettingsController::class, 'deleteAccount']);
+
+        // Data
+        Route::get('/currencies', [SettingsController::class, 'getCurrencies']);
+        Route::get('/timezones', [SettingsController::class, 'getTimezones']);
     });
 });

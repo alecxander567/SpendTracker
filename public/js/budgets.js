@@ -162,9 +162,10 @@ const Budgets = (() => {
 
             if (result.success) {
                 const options = result.data
+                    .filter((category) => category.type === "expense") // Only expense categories
                     .map(
                         (category) =>
-                            `<option value="${category.id}" data-type="${category.type}">${category.name} (${category.type === "expense" ? "Expense" : "Income"})</option>`,
+                            `<option value="${category.id}" data-type="${category.type}">${category.name}</option>`,
                     )
                     .join("");
                 elements.budgetCategory.innerHTML =
@@ -314,6 +315,14 @@ const Budgets = (() => {
                         <div class="budget-card-dates small">
                             ${formatDate(budget.start_date)} &rarr; ${budget.end_date ? formatDate(budget.end_date) : "Ongoing"}
                         </div>
+
+                        ${
+                            budget.expenses_count > 0
+                                ? `<div class="budget-card-expenses small text-muted mt-1">
+                            <i class="fas fa-receipt"></i> ${budget.expenses_count} expense${budget.expenses_count > 1 ? "s" : ""} linked
+                        </div>`
+                                : ""
+                        }
                     </div>
                 </div>
             `;

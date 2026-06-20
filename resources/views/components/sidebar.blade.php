@@ -19,8 +19,10 @@
         <a href="{{ route('budgets.index') }}" class="sidebar-link {{ $active === 'budgets' ? 'active' : '' }}">
             <i class="fas fa-bullseye"></i> Budgets
         </a>
-        <a href="#" class="sidebar-link {{ $active === 'settings' ? 'active' : '' }}">
-            <i class="fas fa-cog"></i> Settings
+        <!-- Inside the sidebar-nav div -->
+        <a class="sidebar-link {{ $active === 'settings' ? 'active' : '' }}" href="{{ route('settings.index') }}">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
         </a>
     </nav>
 

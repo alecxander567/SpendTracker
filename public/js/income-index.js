@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <li><a class="dropdown-item edit-income-link" href="#" data-id="${income.id}"><i class="fas fa-pen me-2"></i>Edit</a></li>
                         <li><a class="dropdown-item toggle-active-link" href="#" data-id="${income.id}"><i class="fas fa-power-off me-2"></i>${isActive ? "Mark inactive" : "Mark active"}</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger delete-income-link" href="#" data-id="${income.id}"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                        <li><a class="dropdown-item text-danger delete-income-link" href="#" data-id="${income.id}" data-source="${escapeHtml(income.source)}"><i class="fas fa-trash me-2"></i>Delete</a></li>
                     </ul>
                 </div>
             </div>
@@ -317,16 +317,31 @@ document.addEventListener("DOMContentLoaded", function () {
         if (deleteLink) {
             e.preventDefault();
             pendingDeleteId = deleteLink.dataset.id;
+            document.getElementById("deleteIncomeId").value = pendingDeleteId;
+            document.getElementById("deleteIncomeSource").textContent =
+                deleteLink.dataset.source || "this income entry";
             bootstrap.Modal.getOrCreateInstance(
                 document.getElementById("deleteIncomeModal"),
             ).show();
         }
     });
 
+    function setDeleteLoading(loading) {
+        const btn = document.getElementById("confirmDeleteBtn");
+        const text = document.getElementById("deleteBtnText");
+        const spinner = document.getElementById("deleteBtnSpinner");
+        btn.disabled = loading;
+        text.textContent = loading ? "Deleting..." : "Delete";
+        spinner.classList.toggle("d-none", !loading);
+    }
+
     document
         .getElementById("confirmDeleteBtn")
         .addEventListener("click", () => {
             if (!pendingDeleteId) return;
+
+            setDeleteLoading(true);
+
             fetch(`/api/incomes/${pendingDeleteId}`, {
                 method: "DELETE",
                 headers: authHeaders(),
@@ -335,6 +350,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     res.json().then((result) => ({ ok: res.ok, result })),
                 )
                 .then(({ ok, result }) => {
+                    setDeleteLoading(false);
                     bootstrap.Modal.getOrCreateInstance(
                         document.getElementById("deleteIncomeModal"),
                     ).hide();
@@ -350,6 +366,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 })
                 .catch(() => {
+                    setDeleteLoading(false);
                     bootstrap.Modal.getOrCreateInstance(
                         document.getElementById("deleteIncomeModal"),
                     ).hide();

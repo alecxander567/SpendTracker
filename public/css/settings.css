@@ -1,0 +1,204 @@
+/* Settings page styles */
+
+/* ===== Settings filter tabs =============================================== */
+
+#settingsTabs .nav-link {
+    border: none;
+    border-radius: 999px;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background-color: transparent;
+}
+
+#settingsTabs .nav-link:hover {
+    color: var(--text-primary);
+    background-color: #f3f1ee;
+}
+
+#settingsTabs .nav-link.active {
+    color: #fff;
+    background: linear-gradient(90deg, var(--magma-core), var(--magma-deep));
+}
+
+#settingsTabs .nav-link i {
+    margin-right: 0.3rem;
+}
+
+/* ===== Settings cards ===================================================== */
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card.border-danger {
+    border: 2px solid #dc3545;
+    background: rgba(220, 53, 69, 0.04);
+}
+
+.form-label {
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+}
+
+.form-control,
+.form-select {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-soft);
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--magma-core);
+    box-shadow: 0 0 0 3px rgba(255, 77, 28, 0.12);
+}
+
+.form-check-input:checked {
+    background-color: var(--magma-core);
+    border-color: var(--magma-core);
+}
+
+.btn-hero-primary {
+    background: linear-gradient(90deg, var(--magma-core), var(--magma-deep));
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.6rem 1.8rem;
+    border-radius: var(--radius-md);
+    transition: all 0.15s ease;
+}
+
+.btn-hero-primary:hover {
+    filter: brightness(1.08);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.btn-hero-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-danger {
+    background: #dc3545;
+    border: none;
+    padding: 0.6rem 1.8rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.btn-secondary {
+    background: var(--text-muted);
+    border: none;
+    padding: 0.6rem 1.8rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: #5a5560;
+    color: #fff;
+}
+
+/* ===== Modal styling ====================================================== */
+
+.modal-content {
+    border-radius: var(--radius-lg);
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-soft);
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-soft);
+    padding: 1.25rem 1.5rem;
+}
+
+/* ===== Tab content animation ============================================== */
+
+.tab-pane {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Responsive adjustments ============================================= */
+
+@media (max-width: 768px) {
+    #settingsTabs .nav-link {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    #settingsTabs .nav-link i {
+        margin-right: 0.2rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .btn-hero-primary,
+    .btn-danger,
+    .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ===== Error states ======================================================= */
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.is-invalid:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12) !important;
+}
+
+.invalid-feedback {
+    display: none;
+    font-size: 0.8rem;
+    color: #dc3545;
+    margin-top: 0.3rem;
+}
+
+.invalid-feedback.show {
+    display: block;
+}
+
+/* ===== Loading spinner inside buttons ===================================== */
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15rem;
+}

@@ -91,10 +91,18 @@ class User extends Authenticatable
     /**
      * Get the savings goals for the user.
      */
-    // public function savingsGoals()
-    // {
-    //     return $this->hasMany(SavingsGoal::class);
-    // }
+    public function savingsGoals()
+    {
+        return $this->hasMany(SavingsGoal::class);
+    }
+
+    /**
+     * Get the savings transactions for the user.
+     */
+    public function savingsTransactions()
+    {
+        return $this->hasMany(SavingsTransaction::class);
+    }
 
     /**
      * Get total expenses for a specific month and year.
@@ -167,9 +175,7 @@ class User extends Authenticatable
      */
     public function getTotalSavings(): float
     {
-        // Temporarily return 0 until SavingsGoal model exists
-        return 0;
-        // return $this->savingsGoals()->sum('current_amount');
+        return $this->savingsGoals()->sum('current_amount');
     }
 
     /**
@@ -219,6 +225,18 @@ class User extends Authenticatable
         return $this->incomes()
             ->with('category')
             ->orderBy('date', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get recent savings transactions.
+     */
+    public function getRecentSavingsTransactions($limit = 10)
+    {
+        return $this->savingsTransactions()
+            ->with('savingsGoal')
+            ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get();
     }
@@ -292,6 +310,61 @@ class User extends Authenticatable
             })
             ->orderBy('date', 'desc')
             ->get();
+    }
+
+    /**
+     * Get active savings goals (not completed).
+     */
+    public function getActiveSavingsGoals()
+    {
+        return $this->savingsGoals()
+            ->where('is_completed', false)
+            ->orderBy('priority', 'desc')
+            ->orderBy('target_date', 'asc')
+            ->get();
+    }
+
+    /**
+     * Get completed savings goals.
+     */
+    public function getCompletedSavingsGoals()
+    {
+        return $this->savingsGoals()
+            ->where('is_completed', true)
+            ->orderBy('completed_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * Get savings goal statistics.
+     */
+    public function getSavingsStatistics(): array
+    {
+        $goals = $this->savingsGoals;
+
+        return [
+            'total_goals' => $goals->count(),
+            'active_goals' => $goals->where('is_completed', false)->count(),
+            'completed_goals' => $goals->where('is_completed', true)->count(),
+            'total_target' => $goals->sum('target_amount'),
+            'total_saved' => $goals->sum('current_amount'),
+            'overall_progress' => $goals->sum('target_amount') > 0
+                ? round(($goals->sum('current_amount') / $goals->sum('target_amount')) * 100, 2)
+                : 0,
+            'by_priority' => [
+                'high' => $goals->where('priority', 'high')->count(),
+                'medium' => $goals->where('priority', 'medium')->count(),
+                'low' => $goals->where('priority', 'low')->count(),
+            ],
+            'by_category' => $goals->groupBy('category')->map(function ($group) {
+                return [
+                    'count' => $group->count(),
+                    'total_target' => $group->sum('target_amount'),
+                    'total_saved' => $group->sum('current_amount'),
+                    'label' => $group->first()->getCategoryLabel(),
+                ];
+            }),
+        ];
     }
 
     /**

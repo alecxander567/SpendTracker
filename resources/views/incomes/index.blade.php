@@ -135,18 +135,27 @@
     <x-logout-modal />
     <x-add-income-modal />
 
-    <!-- Delete confirmation modal -->
-    <div class="modal fade" id="deleteIncomeModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteIncomeModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-body text-center pt-4">
-                    <i class="fas fa-triangle-exclamation mb-2" style="font-size: 28px; color: var(--magma-deep);"></i>
-                    <p class="mb-0 small">Delete this income entry? This can't be undone.</p>
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color: var(--magma-deep);">Delete Income</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light flex-fill" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn flex-fill text-white" style="background: var(--magma-deep);"
-                        id="confirmDeleteBtn">Delete</button>
+                <div class="modal-body text-center py-4">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--magma-deep);"></i>
+                    <p class="mt-3 mb-0">Are you sure you want to delete <strong id="deleteIncomeSource"></strong>?</p>
+                    <p class="text-muted small">This action cannot be undone.</p>
+                    <input type="hidden" id="deleteIncomeId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <span id="deleteBtnText">Delete</span>
+                        <span id="deleteBtnSpinner" class="spinner-border spinner-border-sm d-none"
+                            role="status"></span>
+                    </button>
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Expense;
 
 class Budget extends Model
 {
@@ -40,6 +41,14 @@ class Budget extends Model
         return $this->belongsTo(Category::class);
     }
 
+    /**
+     * Get the expenses linked to this budget.
+     */
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -55,10 +64,37 @@ class Budget extends Model
         return $query->where('period', $period);
     }
 
+    /**
+     * Get the total spent amount for this budget (sum of linked expenses).
+     */
     public function getSpentAmount(): float
     {
-        // Return 0 for now until Expense model exists
-        return 0;
+        return (float) $this->expenses()->sum('amount');
+    }
+
+    /**
+     * Get the total spent amount within the budget period (legacy method).
+     */
+    public function getSpentAmountByPeriod(): float
+    {
+        return (float) Expense::where('user_id', $this->user_id)
+            ->where('category_id', $this->category_id)
+            ->whereBetween('date', [$this->start_date, $this->getEffectiveEndDate()])
+            ->sum('amount');
+    }
+
+    protected function getEffectiveEndDate()
+    {
+        if ($this->end_date) {
+            return $this->end_date;
+        }
+
+        return match ($this->period) {
+            'weekly'  => $this->start_date->copy()->addWeek()->subDay(),
+            'monthly' => $this->start_date->copy()->addMonthNoOverflow()->subDay(),
+            'yearly'  => $this->start_date->copy()->addYear()->subDay(),
+            default   => now(),
+        };
     }
 
     public function getRemainingAmount(): float

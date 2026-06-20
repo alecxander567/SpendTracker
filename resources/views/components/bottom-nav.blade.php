@@ -4,8 +4,8 @@
     <a href="{{ route('dashboard') }}" class="bottom-nav-link {{ $active === 'dashboard' ? 'active' : '' }}">
         <i class="fas fa-chart-pie"></i> Home
     </a>
-    <a href="#" class="bottom-nav-link {{ $active === 'transactions' ? 'active' : '' }}">
-        <i class="fas fa-receipt"></i> History
+    <a href="{{ route('categories.index') }}" class="bottom-nav-link {{ $active === 'categories' ? 'active' : '' }}">
+        <i class="fas fa-tags"></i> Categories
     </a>
     <a href="#" class="bottom-nav-fab">
         <i class="fas fa-plus"></i>

@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class BudgetController extends Controller
@@ -17,7 +18,7 @@ class BudgetController extends Controller
     {
         try {
             $budgets = Budget::where('user_id', $request->user()->id)
-                ->with(['category'])
+                ->with(['category', 'expenses'])
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function ($budget) {
@@ -38,6 +39,7 @@ class BudgetController extends Controller
                         'percentage_used' => round($budget->getPercentageUsed(), 2),
                         'status' => $budget->getStatus(),
                         'status_color' => $budget->getStatusColor(),
+                        'expenses_count' => $budget->expenses()->count(),
                         'created_at' => $budget->created_at,
                         'updated_at' => $budget->updated_at,
                     ];
@@ -48,6 +50,7 @@ class BudgetController extends Controller
                 'data' => $budgets
             ], 200);
         } catch (\Exception $e) {
+            Log::error('Error in index: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch budgets',
@@ -125,9 +128,10 @@ class BudgetController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Budget created successfully',
-                'data' => $budget
+                'data' => $budget->load('category')
             ], 201);
         } catch (\Exception $e) {
+            Log::error('Error in store: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'An unexpected error occurred',
@@ -143,7 +147,7 @@ class BudgetController extends Controller
     {
         try {
             $budget = Budget::where('user_id', $request->user()->id)
-                ->with(['category'])
+                ->with(['category', 'expenses'])
                 ->find($id);
 
             if (!$budget) {
@@ -158,6 +162,7 @@ class BudgetController extends Controller
                 'data' => $budget
             ], 200);
         } catch (\Exception $e) {
+            Log::error('Error in show: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch budget',
@@ -214,9 +219,10 @@ class BudgetController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Budget updated successfully',
-                'data' => $budget
+                'data' => $budget->load('category')
             ], 200);
         } catch (\Exception $e) {
+            Log::error('Error in update: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update budget',
@@ -248,6 +254,7 @@ class BudgetController extends Controller
                 'message' => 'Budget deleted successfully'
             ], 200);
         } catch (\Exception $e) {
+            Log::error('Error in destroy: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete budget',
@@ -273,6 +280,57 @@ class BudgetController extends Controller
                 'data' => $budgets
             ], 200);
         } catch (\Exception $e) {
+            Log::error('Error in getActive: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch active budgets',
+                'error' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
+    }
+
+    /**
+     * Get active budgets for dropdown selection.
+     */
+    public function getActiveBudgets(Request $request)
+    {
+        try {
+            // Check if user is authenticated
+            if (!$request->user()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
+
+            $budgets = Budget::where('user_id', $request->user()->id)
+                ->where('is_active', true)
+                ->with(['category'])
+                ->get()
+                ->map(function ($budget) {
+                    return [
+                        'id' => $budget->id,
+                        'category_id' => $budget->category_id,
+                        'category_name' => $budget->category->name,
+                        'category_color' => $budget->category->color,
+                        'amount' => $budget->amount,
+                        'remaining' => $budget->getRemainingAmount(),
+                        'period' => $budget->period,
+                        'period_label' => $budget->getPeriodLabel(),
+                        'start_date' => $budget->start_date,
+                        'end_date' => $budget->end_date,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $budgets
+            ], 200);
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Error in getActiveBudgets: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch active budgets',
@@ -327,6 +385,7 @@ class BudgetController extends Controller
                 ]
             ], 200);
         } catch (\Exception $e) {
+            Log::error('Error in getSummary: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch budget summary',
