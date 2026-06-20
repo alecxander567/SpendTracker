@@ -230,13 +230,13 @@
                                 <label for="goalCategory" class="form-label fw-semibold">Category</label>
                                 <select class="form-select" id="goalCategory" name="category" required>
                                     <option value="">Select category</option>
-                                    <option value="emergency">🛡️ Emergency</option>
-                                    <option value="vacation">🏖️ Vacation</option>
-                                    <option value="education">🎓 Education</option>
-                                    <option value="home">🏠 Home</option>
-                                    <option value="vehicle">🚗 Vehicle</option>
-                                    <option value="retirement">🚀 Retirement</option>
-                                    <option value="other">📦 Other</option>
+                                    <option value="emergency" data-icon="shield-check">Emergency</option>
+                                    <option value="vacation" data-icon="beach">Vacation</option>
+                                    <option value="education" data-icon="school">Education</option>
+                                    <option value="home" data-icon="home">Home</option>
+                                    <option value="vehicle" data-icon="car">Vehicle</option>
+                                    <option value="retirement" data-icon="rocket">Retirement</option>
+                                    <option value="other" data-icon="package">Other</option>
                                 </select>
                                 <div class="invalid-feedback" id="goalCategoryError"></div>
                             </div>
