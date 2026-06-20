@@ -28,8 +28,12 @@ WORKDIR /var/www/html
 # Copy existing application directory contents
 COPY . /var/www/html
 
-# Install dependencies with security advisories disabled
+# Disable security advisories and install dependencies
 RUN rm -f composer.lock \
+    && composer config --global --no-interaction allow-plugins true \
+    && composer config --global --no-interaction disable-tls false \
+    && composer config --global --no-interaction secure-http true \
+    && composer config --global --no-interaction github-oauth.github.com your-token \
     && composer install --no-interaction --optimize-autoloader --no-dev --ignore-platform-req=php
 
 # Set proper permissions
