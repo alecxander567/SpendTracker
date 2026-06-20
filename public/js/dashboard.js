@@ -325,6 +325,17 @@ document.addEventListener("DOMContentLoaded", function () {
     let monthlyIncome = 0;
     let allGoals = [];
 
+    // Category -> Font Awesome icon map (icons, not emoji)
+    const CATEGORY_ICONS = {
+        emergency: "fa-shield-halved",
+        vacation: "fa-umbrella-beach",
+        education: "fa-graduation-cap",
+        home: "fa-house",
+        vehicle: "fa-car",
+        retirement: "fa-rocket",
+        other: "fa-box",
+    };
+
     // Function to render wishlist items
     function renderWishlistItems(goals) {
         const listEl = document.getElementById("savingsGoalsList");
@@ -346,49 +357,43 @@ document.addEventListener("DOMContentLoaded", function () {
                 0,
                 goal.target_amount - monthlyIncome,
             );
-            const iconClass = goal.category_icon || "fa-box";
+            const iconClass =
+                CATEGORY_ICONS[goal.category] || goal.category_icon || "fa-box";
+
+            // Progress is "monthly income vs target" since that's the
+            // affordability signal already supplied by the API.
+            const progressPct = Math.min(
+                100,
+                Math.round((monthlyIncome / goal.target_amount) * 100) || 0,
+            );
+
+            const metaLine = isAffordable
+                ? `Affordable on ${formatCurrency(monthlyIncome)}/mo income`
+                : `${formatCurrency(monthlyIncome)} of ${goal.formatted_target_amount} &middot; need ${formatCurrency(amountNeeded)} more`;
 
             html += `
-                <div class="savings-goal-item">
-                    <div class="savings-goal-header">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="savings-goal-icon ${goal.category}">
-                                <i class="fas ${iconClass}"></i>
-                            </span>
-                            <span class="savings-goal-name">${goal.name}</span>
-                        </div>
-                        <span class="savings-goal-amount">${goal.formatted_target_amount}</span>
-                    </div>
-                    <div class="savings-goal-footer mt-1">
-                        <span class="priority-badge ${goal.priority}">${goal.priority_label}</span>
-                        <span class="savings-goal-affordability ${isAffordable ? "affordable" : "unaffordable"}">
-                            ${isAffordable ? "✅ Affordable" : "❌ Need more"}
+                <div class="wishlist-card">
+                    <div class="wishlist-card-body">
+                        <span class="wishlist-icon ${goal.category}">
+                            <i class="fas ${iconClass}"></i>
                         </span>
+                        <div class="wishlist-card-main">
+                            <div class="wishlist-card-header">
+                                <p class="wishlist-card-name">${goal.name}</p>
+                                <span class="wishlist-pill priority-${goal.priority}">${goal.priority_label}</span>
+                            </div>
+                            <p class="wishlist-card-meta">${metaLine}</p>
+                            <div class="wishlist-progress">
+                                <div class="wishlist-progress-bar" style="width: ${progressPct}%;"></div>
+                            </div>
+                        </div>
                     </div>
-                    ${
-                        !isAffordable
-                            ? `
-                        <div class="savings-goal-amount-detail mt-1">
-                            <small class="text-muted">
-                                Monthly Income: ${formatCurrency(monthlyIncome)} 
-                                (Need ${formatCurrency(amountNeeded)} more)
-                            </small>
-                        </div>
-                    `
-                            : `
-                        <div class="savings-goal-amount-detail mt-1">
-                            <small class="text-success">
-                                ✅ Can afford with monthly income of ${formatCurrency(monthlyIncome)}
-                            </small>
-                        </div>
-                    `
-                    }
-                    <div class="savings-goal-actions">
-                        <button class="btn btn-sm btn-edit edit-goal-btn" data-id="${goal.id}" title="Edit item">
-                            <i class="fas fa-pen"></i> Edit
+                    <div class="wishlist-card-actions">
+                        <button class="wishlist-action-btn edit edit-goal-btn" data-id="${goal.id}" data-tooltip="Edit" aria-label="Edit ${goal.name}">
+                            <i class="fas fa-pen"></i>
                         </button>
-                        <button class="btn btn-sm btn-delete delete-goal-btn" data-id="${goal.id}" data-name="${goal.name}" title="Delete item">
-                            <i class="fas fa-trash-alt"></i> Delete
+                        <button class="wishlist-action-btn delete delete-goal-btn" data-id="${goal.id}" data-name="${goal.name}" data-tooltip="Delete" aria-label="Delete ${goal.name}">
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </div>
