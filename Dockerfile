@@ -28,6 +28,9 @@ COPY . .
 
 # Disable security advisories and install dependencies
 RUN composer config --global allow-plugins true \
+    && composer config --global --no-interaction disable-tls false \
+    && composer config --global --no-interaction secure-http true \
+    && composer config --global --no-interaction policy.advisories.block false \
     && composer install --no-interaction --optimize-autoloader --no-dev
 
 # Set permissions
