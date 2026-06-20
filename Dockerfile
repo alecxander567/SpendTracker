@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.3-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -18,7 +18,7 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 RUN a2enmod rewrite
 
 # Install Composer
-COPY --from=composer:2.5 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
@@ -27,9 +27,7 @@ WORKDIR /var/www/html
 COPY . .
 
 # Disable security advisories and install dependencies
-RUN composer config --global --no-interaction allow-plugins true \
-    && composer config --global --no-interaction disable-tls false \
-    && composer config --global --no-interaction secure-http true \
+RUN composer config --global allow-plugins true \
     && composer install --no-interaction --optimize-autoloader --no-dev
 
 # Set permissions
