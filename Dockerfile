@@ -74,13 +74,22 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
     && sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
 # Startup script
+# Render injects environment variables directly into the container, so we
+# do NOT need a .env file to exist at runtime — Laravel's env() reads real
+# process environment variables regardless. We only touch .env as a fallback
+# for artisan commands that insist on a file existing (key:generate does).
 RUN echo '#!/bin/bash\n\
 set -e\n\
-if [ ! -f .env ] && [ -f .env.example ]; then\n\
-    cp .env.example .env\n\
-fi\n\
+# Ensure a .env file exists so file-dependent artisan commands do not crash.\n\
+# Real config values still come from Render'"'"'s injected environment vars.\n\
+touch .env\n\
 php artisan config:clear\n\
-php artisan key:generate --force\n\
+if [ -z "$APP_KEY" ]; then\n\
+    php artisan key:generate --force\n\
+    echo "WARNING: APP_KEY was not set as an env var. A new key was generated"\n\
+    echo "and will change on every restart unless you set APP_KEY permanently"\n\
+    echo "in Render'"'"'s Environment tab using the value artisan just generated."\n\
+fi\n\
 php artisan migrate --force\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
