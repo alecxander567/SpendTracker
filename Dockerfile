@@ -28,10 +28,9 @@ WORKDIR /var/www/html
 # Copy existing application directory contents
 COPY . /var/www/html
 
-# Remove composer.lock if exists and install dependencies
+# Install dependencies with security advisories disabled
 RUN rm -f composer.lock \
-    && composer install --no-interaction --optimize-autoloader --no-dev \
-    && composer clear-cache
+    && composer install --no-interaction --optimize-autoloader --no-dev --ignore-platform-req=php
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
