@@ -7,7 +7,7 @@
     <a href="{{ route('categories.index') }}" class="bottom-nav-link {{ $active === 'categories' ? 'active' : '' }}">
         <i class="fas fa-tags"></i> Categories
     </a>
-    <a href="#" class="bottom-nav-fab">
+    <a href="{{ route('expenses.index') }}" class="bottom-nav-fab">
         <i class="fas fa-plus"></i>
     </a>
     <a href="{{ route('budgets.index') }}" class="bottom-nav-link {{ $active === 'budgets' ? 'active' : '' }}">
