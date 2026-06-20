@@ -6,13 +6,12 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.4",
-        "laravel/framework": "^11.0",
-        "laravel/tinker": "^2.9"
+        "php": "^8.1",
+        "laravel/framework": "^10.0",
+        "laravel/tinker": "^2.8"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
-        "laravel/pail": "^1.2.5",
         "laravel/pint": "^1.27",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^7.0",
@@ -59,9 +58,7 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        },
-        "disable-tls": false,
-        "secure-http": true
+        }
     },
     "minimum-stability": "stable",
     "prefer-stable": true

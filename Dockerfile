@@ -1,5 +1,5 @@
-# Use PHP 8.4 with Apache
-FROM php:8.4-apache
+# Use PHP 8.3 with Apache
+FROM php:8.3-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -28,13 +28,9 @@ WORKDIR /var/www/html
 # Copy existing application directory contents
 COPY . /var/www/html
 
-# Disable security advisories and install dependencies
+# Install dependencies
 RUN rm -f composer.lock \
-    && composer config --global --no-interaction allow-plugins true \
-    && composer config --global --no-interaction disable-tls false \
-    && composer config --global --no-interaction secure-http true \
-    && composer config --global --no-interaction github-oauth.github.com your-token \
-    && composer install --no-interaction --optimize-autoloader --no-dev --ignore-platform-req=php
+    && composer install --no-interaction --optimize-autoloader --no-dev --prefer-dist
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
