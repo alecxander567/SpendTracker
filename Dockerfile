@@ -1,15 +1,22 @@
-FROM php:8.3-apache
+# Use PHP 8.4 with Apache
+FROM php:8.4-apache
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip nodejs npm \
-    libpng-dev libonig-dev libxml2-dev \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Enable mod_rewrite
+# Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
 # Install Composer
@@ -18,32 +25,34 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application
-COPY . .
+# Copy existing application directory contents
+COPY . /var/www/html
 
-# Install dependencies
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+# Remove composer.lock if exists and install dependencies
+RUN rm -f composer.lock \
+    && composer install --no-interaction --optimize-autoloader --no-dev \
+    && composer clear-cache
 
-# Build assets
-RUN npm install --ignore-scripts && npm run build || true
-
-# Set permissions
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 755 storage bootstrap/cache
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
 
 # Configure Apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
     && sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
-# Create startup script
+# Create entrypoint script
 RUN echo '#!/bin/bash\n\
-if [ ! -f .env ]; then cp .env.example .env; fi\n\
+if [ ! -f .env ] && [ -f .env.example ]; then\n\
+    cp .env.example .env\n\
+fi\n\
 php artisan key:generate --force\n\
 php artisan migrate --force\n\
 php artisan optimize:clear\n\
-apache2-foreground' > /usr/local/bin/start.sh \
-    && chmod +x /usr/local/bin/start.sh
+apache2-foreground' > /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
 
-ENTRYPOINT ["/usr/local/bin/start.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 EXPOSE 80
