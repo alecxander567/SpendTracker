@@ -1,0 +1,37 @@
+/* Extends dashboard.css — relies on its CSS custom properties (--magma-core, etc.) */
+
+.income-row {
+    align-items: center;
+}
+
+.income-row .dropdown-toggle::after {
+    display: none;
+}
+
+.badge-recurring {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--spectrum-violet);
+    font-weight: 600;
+}
+
+.income-modal-content {
+    border-radius: var(--radius-lg);
+    border: none;
+}
+
+#incomeList .txn-row:hover {
+    background-color: rgba(28, 26, 34, 0.02);
+    border-radius: var(--radius-md);
+}
+
+.pagination .page-link {
+    color: var(--text-primary);
+    border-color: var(--border-soft);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--magma-core);
+    border-color: var(--magma-core);
+}

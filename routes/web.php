@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\LoginController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +53,9 @@ Route::middleware(['auth'])->group(function () {
     // Logout
     Route::post('/logout', [LoginController::class, 'logout']);
 
+    // ============================================
+    // CATEGORIES
+    // ============================================
     Route::get('/categories', function () {
         return response()
             ->view('categories.index')
@@ -69,6 +73,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', [CategoryController::class, 'destroy']);
     });
 
+    // ============================================
+    // BUDGETS
+    // ============================================
     Route::get('/budgets', function () {
         return response()
             ->view('budgets.index')
@@ -87,6 +94,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', [BudgetController::class, 'destroy']);
     });
 
+    // ============================================
+    // EXPENSES
+    // ============================================
     // Expense Web Routes (for views)
     Route::get('/expenses', function () {
         return response()
@@ -115,5 +125,41 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}', [ExpenseController::class, 'show']);
         Route::put('/{id}', [ExpenseController::class, 'update']);
         Route::delete('/{id}', [ExpenseController::class, 'destroy']);
+    });
+
+    // ============================================
+    // INCOMES
+    // ============================================
+    // Income Web Routes (for views)
+    Route::get('/incomes', function () {
+        return response()
+            ->view('incomes.index')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    })->name('incomes.index');
+
+    Route::get('/incomes/create', function () {
+        return view('incomes.create');
+    })->name('incomes.create');
+
+    Route::get('/incomes/{id}/edit', function ($id) {
+        return view('incomes.edit', ['id' => $id]);
+    })->name('incomes.edit');
+
+    // Income API routes (for AJAX requests)
+    Route::prefix('api/incomes')->group(function () {
+        Route::get('/', [IncomeController::class, 'index']);
+        Route::get('/summary', [IncomeController::class, 'summary']);
+        Route::get('/recurring', [IncomeController::class, 'recurring']);
+        Route::get('/sources', [IncomeController::class, 'sources']);
+        Route::get('/statistics', [IncomeController::class, 'statistics']);
+        Route::get('/export', [IncomeController::class, 'export']);
+        Route::post('/', [IncomeController::class, 'store']);
+        Route::post('/bulk-delete', [IncomeController::class, 'bulkDelete']);
+        Route::get('/{id}', [IncomeController::class, 'show']);
+        Route::put('/{id}', [IncomeController::class, 'update']);
+        Route::delete('/{id}', [IncomeController::class, 'destroy']);
+        Route::patch('/{id}/toggle-active', [IncomeController::class, 'toggleActive']);
     });
 });

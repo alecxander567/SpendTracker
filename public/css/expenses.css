@@ -161,7 +161,55 @@
     display: block;
 }
 
+/* ===== Expense filter tabs ================================================ */
+
+#expenseTabs .nav-link {
+    border: none;
+    border-radius: 999px;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background-color: transparent;
+}
+
+#expenseTabs .nav-link:hover {
+    color: var(--text-primary);
+    background-color: #f3f1ee;
+}
+
+#expenseTabs .nav-link.active {
+    color: #fff;
+    background: linear-gradient(90deg, var(--magma-core), var(--magma-deep));
+}
+
 /* ===== Expenses table ===================================================== */
+
+#expensesTable thead th {
+    background-color: #faf8f6;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border-soft);
+    padding: 0.85rem 1rem;
+}
+
+#expensesTable tbody td {
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: middle;
+}
+
+#expensesTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#expensesTable tbody tr:hover {
+    background-color: #faf8f6;
+}
 
 /* Payment method icons in table */
 .expenses-table .payment-icon {

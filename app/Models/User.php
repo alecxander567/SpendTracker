@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -21,7 +22,6 @@ class User extends Authenticatable
         'password',
         'currency',
         'timezone',
-        'monthly_income',
         'budget_cycle_start',
         'preferences',
     ];
@@ -45,7 +45,6 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'preferences' => 'array',
-        'monthly_income' => 'decimal:2',
         'budget_cycle_start' => 'date',
     ];
 
@@ -82,6 +81,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the incomes for the user.
+     */
+    public function incomes()
+    {
+        return $this->hasMany(Income::class);
+    }
+
+    /**
      * Get the savings goals for the user.
      */
     // public function savingsGoals()
@@ -108,11 +115,33 @@ class User extends Authenticatable
      */
     public function getTotalIncomeForMonth($month, $year): float
     {
-        return $this->expenses()
+        return $this->incomes()
             ->whereMonth('date', $month)
             ->whereYear('date', $year)
+            ->where('is_active', true)
+            ->sum('amount');
+    }
+
+    /**
+     * Get total income for a specific period.
+     */
+    public function getTotalIncomeForPeriod($startDate, $endDate): float
+    {
+        return $this->incomes()
+            ->whereBetween('date', [$startDate, $endDate])
+            ->where('is_active', true)
+            ->sum('amount');
+    }
+
+    /**
+     * Get total expenses for a specific period.
+     */
+    public function getTotalExpensesForPeriod($startDate, $endDate): float
+    {
+        return $this->expenses()
+            ->whereBetween('date', [$startDate, $endDate])
             ->whereHas('category', function ($query) {
-                $query->where('type', 'income');
+                $query->where('type', 'expense');
             })
             ->sum('amount');
     }
@@ -123,6 +152,14 @@ class User extends Authenticatable
     public function getNetCashFlow($month, $year): float
     {
         return $this->getTotalIncomeForMonth($month, $year) - $this->getTotalExpensesForMonth($month, $year);
+    }
+
+    /**
+     * Get net cash flow for a specific period.
+     */
+    public function getNetCashFlowForPeriod($startDate, $endDate): float
+    {
+        return $this->getTotalIncomeForPeriod($startDate, $endDate) - $this->getTotalExpensesForPeriod($startDate, $endDate);
     }
 
     /**
@@ -174,6 +211,51 @@ class User extends Authenticatable
             ->get();
     }
 
+    /**
+     * Get recent incomes.
+     */
+    public function getRecentIncomes($limit = 10)
+    {
+        return $this->incomes()
+            ->with('category')
+            ->orderBy('date', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get the current month's income breakdown by source.
+     */
+    public function getMonthlyIncomeBreakdown($month = null, $year = null)
+    {
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+
+        return $this->incomes()
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->where('is_active', true)
+            ->select('source', DB::raw('SUM(amount) as total'))
+            ->groupBy('source')
+            ->orderBy('total', 'desc')
+            ->get();
+    }
+
+    /**
+     * Get income sources for dropdown/select.
+     */
+    public function getIncomeSources(): array
+    {
+        return $this->incomes()
+            ->where('is_active', true)
+            ->distinct()
+            ->pluck('source')
+            ->toArray();
+    }
+
+    /**
+     * Get currency symbol for the user.
+     */
     public function getCurrencySymbol(): string
     {
         $symbols = [
@@ -188,9 +270,28 @@ class User extends Authenticatable
         return $symbols[$this->currency] ?? '$';
     }
 
+    /**
+     * Format currency amount.
+     */
     public function formatCurrency($amount): string
     {
         return $this->getCurrencySymbol() . number_format($amount, 2);
+    }
+
+    /**
+     * Get the user's active recurring incomes.
+     */
+    public function getActiveRecurringIncomes()
+    {
+        return $this->incomes()
+            ->where('is_recurring', true)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('recurring_end_date')
+                    ->orWhere('recurring_end_date', '>=', now());
+            })
+            ->orderBy('date', 'desc')
+            ->get();
     }
 
     /**

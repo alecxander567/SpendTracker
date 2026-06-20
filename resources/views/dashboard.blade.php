@@ -31,15 +31,15 @@
             <div class="hero-card mb-4">
                 <div class="row align-items-center">
                     <div class="col-12 col-md-7">
-                        <div class="hero-eyebrow mb-2">Total balance</div>
-                        <div class="hero-balance mb-1">₱0.00</div>
-                        <p class="hero-sub mb-3 mb-md-0">Across all accounts &middot; transactions coming soon</p>
+                        <div class="hero-eyebrow mb-2">Net cash flow</div>
+                        <div class="hero-balance mb-1" id="heroBalanceValue">₱0.00</div>
+                        <p class="hero-sub mb-3 mb-md-0" id="heroBalanceSub">Calculating this month's cash flow&hellip;</p>
                     </div>
                     <div class="col-12 col-md-5 mt-3 mt-md-0">
                         <div class="d-flex gap-2 justify-content-md-end">
-                            <button type="button" class="btn btn-hero flex-fill flex-md-grow-0 px-3" disabled>
+                            <a href="{{ route('incomes.index') }}" class="btn btn-hero flex-fill flex-md-grow-0 px-3">
                                 <i class="fas fa-arrow-up me-1"></i> Add income
-                            </button>
+                            </a>
                             <a href="{{ route('expenses.index') }}"
                                 class="btn btn-hero-primary flex-fill flex-md-grow-0 px-3">
                                 <i class="fas fa-plus me-1"></i> Add expense
@@ -63,16 +63,18 @@
                     <div class="stat-card">
                         <div class="stat-icon bg-income"><i class="fas fa-arrow-up"></i></div>
                         <div class="stat-label">Income this month</div>
-                        <div class="stat-value">₱0.00</div>
-                        <div class="stat-trend up text-muted"><i class="fas fa-minus"></i> No data yet</div>
+                        <div class="stat-value" id="incomeMonthValue">₱0.00</div>
+                        <div class="stat-trend up text-muted" id="incomeMonthTrend"><i class="fas fa-minus"></i> No data yet
+                        </div>
                     </div>
                 </div>
                 <div class="col-12 col-sm-4">
                     <div class="stat-card">
                         <div class="stat-icon bg-expense"><i class="fas fa-arrow-down"></i></div>
                         <div class="stat-label">Expenses this month</div>
-                        <div class="stat-value">₱0.00</div>
-                        <div class="stat-trend down text-muted"><i class="fas fa-minus"></i> No data yet</div>
+                        <div class="stat-value" id="expenseMonthValue">₱0.00</div>
+                        <div class="stat-trend down text-muted" id="expenseMonthTrend"><i class="fas fa-minus"></i> No data
+                            yet</div>
                     </div>
                 </div>
             </div>
@@ -123,7 +125,15 @@
                             <a href="{{ route('expenses.index') }}" class="section-link">See all</a>
                         </div>
 
-                        <div class="text-center py-5">
+                        <div id="recentTransactionsList">
+                            <div class="text-center py-4">
+                                <div class="spinner-border spinner-border-sm" style="color: var(--magma-core);"
+                                    role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="recentTransactionsEmpty" class="text-center py-5 d-none">
                             <i class="fas fa-receipt" style="font-size: 40px; color: var(--text-muted);"></i>
                             <p class="text-muted small mt-3 mb-0">No transactions recorded yet.</p>
                         </div>
@@ -141,104 +151,5 @@
 @endsection
 
 @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const loader = document.getElementById('pageLoader');
-            const content = document.getElementById('mainContent');
-
-            const formatCurrency = (value) => {
-                const num = Number(value) || 0;
-                return '₱' + num.toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                });
-            };
-
-            const revealPage = () => {
-                if (loader) loader.style.display = 'none';
-                if (content) content.style.display = 'block';
-            };
-
-            // Always reveal the page after a maximum of 3 seconds
-            const timeoutId = setTimeout(revealPage, 3000);
-
-            fetch('/api/budgets', {
-                    headers: {
-                        Accept: 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                })
-                .then((res) => {
-                    if (!res.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return res.json();
-                })
-                .then((result) => {
-                    if (!result.success) {
-                        console.warn('API returned unsuccessful:', result);
-                        return;
-                    }
-
-                    const budgets = result.data;
-                    const activeBudgets = budgets.filter((b) => b.is_active);
-
-                    // Total budget stat card
-                    const totalBudgeted = activeBudgets.reduce((sum, b) => sum + Number(b.amount), 0);
-                    const totalSpent = activeBudgets.reduce((sum, b) => sum + Number(b.spent), 0);
-                    const percentUsed = totalBudgeted > 0 ? Math.round((totalSpent / totalBudgeted) * 100) : 0;
-
-                    const totalBudgetEl = document.getElementById('totalBudgetValue');
-                    const totalBudgetTrendEl = document.getElementById('totalBudgetTrend');
-                    if (totalBudgetEl) totalBudgetEl.textContent = formatCurrency(totalBudgeted);
-                    if (totalBudgetTrendEl) {
-                        totalBudgetTrendEl.innerHTML = `<i class="fas fa-arrow-up"></i> ${percentUsed}% used`;
-                    }
-
-                    // Top categories list
-                    const listEl = document.getElementById('topCategoriesList');
-                    const emptyEl = document.getElementById('topCategoriesEmpty');
-
-                    if (activeBudgets.length === 0) {
-                        if (listEl) listEl.innerHTML = '';
-                        if (emptyEl) emptyEl.classList.remove('d-none');
-                        return;
-                    }
-
-                    const top = [...activeBudgets]
-                        .sort((a, b) => Number(b.spent) - Number(a.spent))
-                        .slice(0, 4);
-
-                    let html = '';
-                    top.forEach((budget) => {
-                        const pct = Math.min(Number(budget.percentage_used) || 0, 100);
-                        const color = budget.category_color || '#6C757D';
-                        html += `
-                            <div class="category-row">
-                                <span class="category-dot" style="background: ${color};"></span>
-                                <span class="small flex-shrink-0" style="width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${budget.category_name}</span>
-                                <div class="category-progress">
-                                    <div class="category-progress-bar" style="width: ${pct}%; background: ${color};"></div>
-                                </div>
-                                <span class="small fw-semibold">${formatCurrency(budget.spent)}</span>
-                            </div>
-                        `;
-                    });
-
-                    if (listEl) listEl.innerHTML = html;
-                    if (emptyEl) emptyEl.classList.add('d-none');
-                })
-                .catch((err) => {
-                    console.error('Error loading budget data:', err);
-                    const listEl = document.getElementById('topCategoriesList');
-                    const emptyEl = document.getElementById('topCategoriesEmpty');
-                    if (listEl) listEl.innerHTML = '';
-                    if (emptyEl) emptyEl.classList.remove('d-none');
-                })
-                .finally(() => {
-                    clearTimeout(timeoutId);
-                    revealPage();
-                });
-        });
-    </script>
+    <script src="{{ asset('js/dashboard.js') }}"></script>
 @endpush
