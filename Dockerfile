@@ -1,24 +1,15 @@
-# Use PHP 8.3 with Apache
 FROM php:8.3-apache
 
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    nodejs \
-    npm \
-    && apt-get clean \
+    git curl zip unzip nodejs npm \
+    libpng-dev libonig-dev libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Enable Apache mod_rewrite
+# Enable mod_rewrite
 RUN a2enmod rewrite
 
 # Install Composer
@@ -27,30 +18,32 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy existing application directory contents
-COPY . /var/www/html
+# Copy application
+COPY . .
 
-# Install composer dependencies
+# Install dependencies
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# Install NPM dependencies and build assets
-RUN npm install --ignore-scripts && npm run build
+# Build assets
+RUN npm install --ignore-scripts && npm run build || true
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 755 storage bootstrap/cache
 
-# Copy Apache configuration
-COPY .docker/vhost.conf /etc/apache2/sites-available/000-default.conf
+# Configure Apache
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf \
+    && sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
-# Configure PHP
-COPY .docker/php.ini /usr/local/etc/php/conf.d/app.ini
+# Create startup script
+RUN echo '#!/bin/bash\n\
+if [ ! -f .env ]; then cp .env.example .env; fi\n\
+php artisan key:generate --force\n\
+php artisan migrate --force\n\
+php artisan optimize:clear\n\
+apache2-foreground' > /usr/local/bin/start.sh \
+    && chmod +x /usr/local/bin/start.sh
 
-# Copy entrypoint script
-COPY .docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/start.sh"]
 
 EXPOSE 80
