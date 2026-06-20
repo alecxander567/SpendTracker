@@ -14,9 +14,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
+# (do NOT also call docker-php-ext-enable — docker-php-ext-install already
+# enables it, and calling both causes a duplicate .ini registration that
+# makes PHP silently refuse to load the module, even though it built fine)
 RUN docker-php-ext-configure gd \
-    && docker-php-ext-install -j$(nproc) pdo pdo_mysql mbstring exif pcntl bcmath gd zip \
-    && docker-php-ext-enable pdo_mysql
+    && docker-php-ext-install -j$(nproc) pdo pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Hard verification — fail the build immediately and loudly if this extension
 # isn't actually wired in, instead of failing later inside artisan
