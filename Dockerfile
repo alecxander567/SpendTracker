@@ -26,12 +26,12 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Disable security advisories and install dependencies
+# Remove dev dependencies and install
 RUN composer config --global allow-plugins true \
     && composer config --global --no-interaction disable-tls false \
     && composer config --global --no-interaction secure-http true \
     && composer config --global --no-interaction policy.advisories.block false \
-    && composer install --no-interaction --optimize-autoloader --no-dev
+    && composer install --no-interaction --optimize-autoloader --no-dev --ignore-platform-req=php
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache \
