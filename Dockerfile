@@ -1,3 +1,17 @@
+FROM node:20-slim AS frontend-build
+
+WORKDIR /app
+
+# Copy only what's needed to install deps first (better layer caching)
+COPY package.json package-lock.json* ./
+RUN npm install
+
+# Copy the rest of the source needed for the build (Vite needs your views/JS/CSS)
+COPY . .
+RUN npm run build
+
+# ---------------------------------------------------------------------------
+
 FROM php:8.3-apache
 
 # Install system dependencies
@@ -61,6 +75,10 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev --no-script
 
 # Now copy the rest of the application
 COPY . .
+
+# Bring in the compiled CSS/JS from the Node build stage — without this,
+# public/build/ is empty and pages load with no styling at all
+COPY --from=frontend-build /app/public/build ./public/build
 
 # Run composer's deferred scripts now that the app code is present
 RUN composer run-script post-autoload-dump
