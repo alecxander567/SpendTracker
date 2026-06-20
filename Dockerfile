@@ -28,8 +28,14 @@ WORKDIR /var/www/html
 # Copy existing application directory contents
 COPY . /var/www/html
 
-# Install dependencies
+# Disable security advisories and install dependencies
 RUN rm -f composer.lock \
+    && composer config --global --no-interaction disable-tls false \
+    && composer config --global --no-interaction secure-http true \
+    && composer config --global --no-interaction allow-plugins true \
+    && composer config --global --no-interaction process-timeout 2000 \
+    && composer config --global --no-interaction repo.packagist.org false \
+    && composer require laravel/framework:10.0.0 --no-interaction --no-scripts \
     && composer install --no-interaction --optimize-autoloader --no-dev --prefer-dist
 
 # Set proper permissions
