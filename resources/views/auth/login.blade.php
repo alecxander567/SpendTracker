@@ -94,6 +94,99 @@
         </div>
     </div>
 
+    <!-- Forgot Password Modal (Step 1: Email) -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="forgotPasswordModalLabel">Forgot password?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="auth-subtitle mb-3">Enter the email address linked to your account.</p>
+
+                    <form id="forgotPasswordForm" novalidate>
+                        <div class="mb-3">
+                            <label for="forgotEmail" class="form-label fw-semibold">Email address</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="forgotEmail" name="email"
+                                    placeholder="you@example.com" autocomplete="email" required>
+                            </div>
+                            <div class="invalid-feedback" id="forgotEmailError"></div>
+                        </div>
+
+                        <div id="forgotPasswordAlert" class="alert d-none" role="alert"></div>
+
+                        <button type="submit" class="btn btn-magma w-100" id="forgotPasswordBtn">
+                            <span id="forgotBtnText">Continue</span>
+                            <span id="forgotBtnSpinner" class="spinner-border spinner-border-sm d-none ms-2"
+                                role="status"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal (Step 2: New Password) -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="resetPasswordModalLabel">Reset your password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="auth-subtitle mb-3">Account verified. Choose a new password below.</p>
+
+                    <form id="resetPasswordForm" novalidate>
+                        <!-- Hidden field carries the verified email from step 1 -->
+                        <input type="hidden" id="resetEmail" name="email">
+
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label fw-semibold">New password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="newPassword" name="password"
+                                    placeholder="At least 8 characters, letters and numbers" autocomplete="new-password"
+                                    required>
+                            </div>
+                            <div class="invalid-feedback" id="newPasswordError"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label fw-semibold">Confirm new password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="confirmPassword"
+                                    name="password_confirmation" placeholder="Re-enter new password"
+                                    autocomplete="new-password" required>
+                            </div>
+                            <div class="invalid-feedback" id="confirmPasswordError"></div>
+                        </div>
+
+                        <div id="resetPasswordAlert" class="alert d-none" role="alert"></div>
+
+                        <button type="submit" class="btn btn-magma w-100" id="resetPasswordBtn">
+                            <span id="resetBtnText">Reset password</span>
+                            <span id="resetBtnSpinner" class="spinner-border spinner-border-sm d-none ms-2"
+                                role="status"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Error Modal Component -->
     <x-error-modal id="loginErrorModal" title="Login Failed" message="Unable to log in. Please check your credentials."
         icon="exclamation-circle" iconColor="danger" buttonText="Close" buttonClass="btn-danger" />
@@ -101,4 +194,5 @@
 
 @push('scripts')
     <script src="{{ asset('js/login.js') }}"></script>
+    <script src="{{ asset('js/forgot-password.js') }}"></script>
 @endpush

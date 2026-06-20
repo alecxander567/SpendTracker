@@ -31,6 +31,8 @@ Route::middleware(['guest'])->group(function () {
 
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/forgot-password/check-email', [AuthController::class, 'checkEmail']);
+    Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword']);
 });
 
 Route::middleware(['auth'])->group(function () {

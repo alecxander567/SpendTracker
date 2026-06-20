@@ -62,4 +62,77 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Check whether an email exists, as step 1 of the forgot-password flow.
+     *
+     * Note: this intentionally confirms whether an account exists for a
+     * given email, which is a deliberate product tradeoff (no email-based
+     * verification step) rather than an oversight.
+     */
+    public function checkEmail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'string', 'email'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please enter a valid email address.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No account found with that email address.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account found. You may now reset your password.',
+        ], 200);
+    }
+
+    /**
+     * Reset a user's password directly, given their email and a new password.
+     * Called after checkEmail() has confirmed the account exists.
+     */
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'string', 'email'],
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No account found with that email address.',
+            ], 404);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset successfully. You may now log in.',
+        ], 200);
+    }
 }
