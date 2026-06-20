@@ -35,8 +35,10 @@ RUN echo "=== Installed extension files ===" \
     && php -i | grep -i pdo
 
 # Hard verification — fail the build immediately and loudly if this extension
-# isn't actually wired in, instead of failing later inside artisan
-RUN php -r "if (!class_exists('Pdo\\Pgsql')) { echo 'PDO_PGSQL NOT LOADED'; exit(1); } echo 'pdo_pgsql OK';"
+# isn't actually wired in, instead of failing later inside artisan.
+# Note: unlike pdo_mysql, pdo_pgsql has no dedicated Pdo\Pgsql class to check
+# against — the correct check is extension_loaded() plus PDO's driver list.
+RUN php -r "if (!extension_loaded('pdo_pgsql')) { echo 'PDO_PGSQL NOT LOADED'; exit(1); } if (!in_array('pgsql', PDO::getAvailableDrivers())) { echo 'pgsql DRIVER NOT REGISTERED WITH PDO'; exit(1); } echo 'pdo_pgsql OK';"
 
 # Enable mod_rewrite
 RUN a2enmod rewrite
