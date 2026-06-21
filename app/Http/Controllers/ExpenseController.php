@@ -369,9 +369,37 @@ class ExpenseController extends Controller
                 ->whereHas('category', function ($query) use ($type) {
                     $query->where('type', $type);
                 })
-                ->with(['category'])
+                ->with(['category', 'budget'])
                 ->orderBy('date', 'desc')
-                ->get();
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($expense) {
+                    return [
+                        'id' => $expense->id,
+                        'category_id' => $expense->category_id,
+                        'category_name' => $expense->category->name,
+                        'category_color' => $expense->category->color,
+                        'category_type' => $expense->category->type,
+                        'budget_id' => $expense->budget_id,
+                        'budget_amount' => $expense->budget ? $expense->budget->amount : null,
+                        'budget_remaining' => $expense->budget ? $expense->budget->getRemainingAmount() : null,
+                        'amount' => $expense->amount,
+                        'formatted_amount' => $expense->getFormattedAmount(),
+                        'description' => $expense->description,
+                        'date' => $expense->date,
+                        'payment_method' => $expense->payment_method,
+                        'payment_method_label' => $expense->getPaymentMethodLabel(),
+                        'payment_method_icon' => $expense->getPaymentMethodIcon(),
+                        'receipt_image' => $expense->receipt_image,
+                        'is_recurring' => $expense->is_recurring,
+                        'recurring_frequency' => $expense->recurring_frequency,
+                        'recurring_frequency_label' => $expense->getRecurringFrequencyLabel(),
+                        'type' => $expense->getTypeLabel(),
+                        'type_badge' => $expense->getTypeBadgeClass(),
+                        'created_at' => $expense->created_at,
+                        'updated_at' => $expense->updated_at,
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
