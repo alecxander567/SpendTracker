@@ -38,9 +38,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // Always reveal the page after a maximum of 3 seconds
     const timeoutId = setTimeout(revealPage, 3000);
 
-    // ============================================
-    // BUDGETS
-    // ============================================
     fetch("/api/budgets", { headers: jsonHeaders })
         .then((res) => {
             if (!res.ok) {
@@ -125,9 +122,6 @@ document.addEventListener("DOMContentLoaded", function () {
             revealPage();
         });
 
-    // ============================================
-    // INCOME SUMMARY
-    // ============================================
     fetch("/api/incomes/summary", { headers: jsonHeaders })
         .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then((result) => {
@@ -147,9 +141,6 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(() => {});
 
-    // ============================================
-    // EXPENSE SUMMARY
-    // ============================================
     fetch("/api/expenses/summary", { headers: jsonHeaders })
         .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then((result) => {
@@ -188,9 +179,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Across all accounts \u00b7 couldn't load this month's data";
         });
 
-    // ============================================
-    // WEEKLY SPENDING
-    // ============================================
     fetch("/api/expenses/weekly", { headers: jsonHeaders })
         .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then((result) => {
@@ -239,9 +227,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (emptyEl) emptyEl.classList.remove("d-none");
         });
 
-    // ============================================
-    // RECENT TRANSACTIONS
-    // ============================================
     Promise.all([
         fetch("/api/expenses", { headers: jsonHeaders }).then((res) =>
             res.ok ? res.json() : { success: false },
@@ -319,9 +304,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (emptyEl) emptyEl.classList.remove("d-none");
         });
 
-    // ============================================
-    // SAVINGS GOALS (WISHLIST) - Load and Display
-    // ============================================
     let monthlyIncome = 0;
     let allGoals = [];
 
@@ -455,10 +437,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
         });
 
-    // ============================================
-    // SAVINGS GOALS - Modal Functions
-    // ============================================
-
     // Initialize modal instances
     const savingsModal = new bootstrap.Modal(
         document.getElementById("savingsModal"),
@@ -517,10 +495,6 @@ document.addEventListener("DOMContentLoaded", function () {
             setGoalError(field, messages[0]);
         }
     }
-
-    // ============================================
-    // SAVINGS GOALS - Priority Radio Buttons
-    // ============================================
 
     // Handle priority radio buttons
     document
@@ -747,10 +721,6 @@ document.addEventListener("DOMContentLoaded", function () {
             setDeleteLoading(false);
         }
     }
-
-    // ============================================
-    // SAVINGS GOALS - Event Listeners
-    // ============================================
 
     // Add Goal button
     document
