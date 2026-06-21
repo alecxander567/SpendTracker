@@ -22,35 +22,11 @@
             <div class="topbar">
                 <div>
                     <h1 class="h5 fw-bold mb-0">Expenses</h1>
-                    <p class="text-muted small mb-0">Manage your income and expenses.</p>
+                    <p class="text-muted small mb-0">Manage your expenses.</p>
                 </div>
                 <button type="button" class="btn btn-hero-primary px-3" id="addExpenseBtn">
                     <i class="fas fa-plus me-1"></i> Add expense
                 </button>
-            </div>
-
-            <!-- Filter Tabs -->
-            <div class="mock-chart mb-4">
-                <ul class="nav nav-pills gap-2" id="expenseTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="all-tab" data-type="all" data-bs-toggle="tab" type="button"
-                            role="tab">
-                            All
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="expense-tab" data-type="expense" data-bs-toggle="tab" type="button"
-                            role="tab">
-                            Expense
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="income-tab" data-type="income" data-bs-toggle="tab" type="button"
-                            role="tab">
-                            Income
-                        </button>
-                    </li>
-                </ul>
             </div>
 
             <!-- Expenses Table -->
@@ -85,8 +61,8 @@
                     <!-- Empty State (hidden by default) -->
                     <div id="emptyState" class="stat-card text-center py-5 d-none mt-3">
                         <i class="fas fa-receipt" style="font-size: 56px; color: var(--text-muted);"></i>
-                        <h2 class="section-title mt-3">No transactions found</h2>
-                        <p class="text-muted small mb-3">Start by adding your first expense or income.</p>
+                        <h2 class="section-title mt-3">No expenses found</h2>
+                        <p class="text-muted small mb-3">Start by adding your first expense.</p>
                         <button class="btn btn-hero-primary px-3" id="emptyStateAddBtn">
                             <i class="fas fa-plus me-1"></i> Add expense
                         </button>
@@ -247,7 +223,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" style="color: var(--magma-deep);">Delete Transaction</h5>
+                    <h5 class="modal-title" style="color: var(--magma-deep);">Delete Expense</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center py-4">

@@ -746,6 +746,11 @@ body {
     color: var(--magma-deep);
 }
 
+.wishlist-pill i {
+    font-size: 0.6rem;
+    margin-right: 0.15rem;
+}
+
 .wishlist-progress {
     height: 5px;
     border-radius: 999px;
@@ -764,27 +769,35 @@ body {
     transition: width 0.3s ease;
 }
 
+/* Affordability pill row — sits right under the progress bar */
+.wishlist-afford-row {
+    display: flex;
+    margin-top: 0.5rem;
+}
+
 /* Action footer — only rendered when the card needs edit/delete controls;
    sits on its own row separated by a hairline so it doesn't compete with
    the goal's own data */
 .wishlist-card-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 0.4rem;
+    justify-content: stretch;
+    gap: 0.5rem;
     margin-top: 0.6rem;
     padding-top: 0.55rem;
     border-top: 1px solid var(--border-soft);
 }
 
 .wishlist-action-btn {
-    width: 26px;
-    height: 26px;
+    flex: 1 1 50%;
+    height: 30px;
     border-radius: 8px;
     border: 1px solid transparent;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.3rem;
     font-size: 0.7rem;
+    font-weight: 600;
     background: transparent;
     transition: all 0.15s ease;
     cursor: pointer;

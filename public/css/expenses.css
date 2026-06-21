@@ -161,28 +161,6 @@
     display: block;
 }
 
-/* ===== Expense filter tabs ================================================ */
-
-#expenseTabs .nav-link {
-    border: none;
-    border-radius: 999px;
-    padding: 0.45rem 1.1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    background-color: transparent;
-}
-
-#expenseTabs .nav-link:hover {
-    color: var(--text-primary);
-    background-color: #f3f1ee;
-}
-
-#expenseTabs .nav-link.active {
-    color: #fff;
-    background: linear-gradient(90deg, var(--magma-core), var(--magma-deep));
-}
-
 /* ===== Expenses table ===================================================== */
 
 #expensesTable thead th {

@@ -352,11 +352,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let html = "";
         displayGoals.forEach((goal) => {
-            const isAffordable = monthlyIncome >= goal.target_amount;
-            const amountNeeded = Math.max(
-                0,
-                goal.target_amount - monthlyIncome,
-            );
+            const targetAmount = Number(goal.target_amount) || 0;
+            const isAffordable = monthlyIncome >= targetAmount;
+            const remainingAfterPurchase = monthlyIncome - targetAmount;
+            const amountNeeded = Math.max(0, targetAmount - monthlyIncome);
             const iconClass =
                 CATEGORY_ICONS[goal.category] || goal.category_icon || "fa-box";
 
@@ -364,12 +363,18 @@ document.addEventListener("DOMContentLoaded", function () {
             // affordability signal already supplied by the API.
             const progressPct = Math.min(
                 100,
-                Math.round((monthlyIncome / goal.target_amount) * 100) || 0,
+                Math.round((monthlyIncome / targetAmount) * 100) || 0,
             );
 
+            // Short affordability line + pill, with remaining balance after
+            // purchase shown when the item can be afforded this month.
+            const affordPill = isAffordable
+                ? `<span class="wishlist-pill on-track"><i class="fas fa-check"></i> Affordable</span>`
+                : `<span class="wishlist-pill behind"><i class="fas fa-xmark"></i> Not yet</span>`;
+
             const metaLine = isAffordable
-                ? `Affordable on ${formatCurrency(monthlyIncome)}/mo income`
-                : `${formatCurrency(monthlyIncome)} of ${goal.formatted_target_amount} &middot; need ${formatCurrency(amountNeeded)} more`;
+                ? `Affordable &middot; ${formatCurrency(remainingAfterPurchase)} left after purchase`
+                : `Need ${formatCurrency(amountNeeded)} more to afford this`;
 
             html += `
                 <div class="wishlist-card">
@@ -386,14 +391,17 @@ document.addEventListener("DOMContentLoaded", function () {
                             <div class="wishlist-progress">
                                 <div class="wishlist-progress-bar" style="width: ${progressPct}%;"></div>
                             </div>
+                            <div class="wishlist-afford-row">
+                                ${affordPill}
+                            </div>
                         </div>
                     </div>
                     <div class="wishlist-card-actions">
-                        <button class="wishlist-action-btn edit edit-goal-btn" data-id="${goal.id}" data-tooltip="Edit" aria-label="Edit ${goal.name}">
-                            <i class="fas fa-pen"></i>
+                        <button class="wishlist-action-btn edit edit-goal-btn" data-id="${goal.id}" aria-label="Edit ${goal.name}">
+                            <i class="fas fa-pen"></i> <span>Edit</span>
                         </button>
-                        <button class="wishlist-action-btn delete delete-goal-btn" data-id="${goal.id}" data-name="${goal.name}" data-tooltip="Delete" aria-label="Delete ${goal.name}">
-                            <i class="fas fa-trash-alt"></i>
+                        <button class="wishlist-action-btn delete delete-goal-btn" data-id="${goal.id}" data-name="${goal.name}" aria-label="Delete ${goal.name}">
+                            <i class="fas fa-trash-alt"></i> <span>Delete</span>
                         </button>
                     </div>
                 </div>

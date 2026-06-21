@@ -37,7 +37,6 @@ const Expenses = (() => {
         confirmDeleteBtn: document.getElementById("confirmDeleteBtn"),
         deleteBtnText: document.getElementById("deleteBtnText"),
         deleteBtnSpinner: document.getElementById("deleteBtnSpinner"),
-        tabs: document.querySelectorAll("#expenseTabs .nav-link"),
         loader: document.getElementById("pageLoader"),
         content: document.getElementById("mainContent"),
     };
@@ -60,9 +59,6 @@ const Expenses = (() => {
     let deleteModal = null;
     let successModal = null;
     let errorModal = null;
-
-    // Current filter type
-    let currentFilter = "all";
 
     // Cache available budgets
     let availableBudgets = [];
@@ -140,16 +136,8 @@ const Expenses = (() => {
             if (elements.category)
                 elements.category.addEventListener("change", onCategoryChange);
 
-            // Tab clicks
-            elements.tabs.forEach((tab) => {
-                tab.addEventListener("click", function () {
-                    currentFilter = this.dataset.type;
-                    loadExpenses(currentFilter);
-                });
-            });
-
             // Load categories and expenses
-            Promise.all([loadCategories(), loadBudgets(), loadExpenses("all")])
+            Promise.all([loadCategories(), loadBudgets(), loadExpenses()])
                 .catch((err) => {
                     console.error("Error during initialization:", err);
                 })
@@ -290,19 +278,14 @@ const Expenses = (() => {
     };
 
     /**
-     * Load expenses from API
+     * Load expenses from API (expense type only)
      */
-    const loadExpenses = async (filter = "all") => {
+    const loadExpenses = async () => {
         try {
-            console.log("Loading expenses with filter:", filter);
+            console.log("Loading expenses...");
             showLoading();
 
-            let url = "/api/expenses";
-            if (filter !== "all") {
-                url = `/api/expenses/type/${filter}`;
-            }
-
-            const response = await fetch(url, {
+            const response = await fetch("/api/expenses/type/expense", {
                 headers: {
                     Accept: "application/json",
                     "X-CSRF-TOKEN": csrfToken(),
@@ -343,9 +326,6 @@ const Expenses = (() => {
 
         let html = "";
         expenses.forEach((expense, index) => {
-            const amountClass =
-                expense.type === "Income" ? "text-success" : "text-danger";
-            const amountPrefix = expense.type === "Income" ? "+" : "-";
             const rowLabel = expense.description || expense.category_name;
 
             // Budget info
@@ -368,7 +348,7 @@ const Expenses = (() => {
                     </td>
                     <td>${budgetInfo}</td>
                     <td>${expense.description || "-"}</td>
-                    <td class="fw-bold ${amountClass}">${amountPrefix}${expense.formatted_amount || expense.amount}</td>
+                    <td class="fw-bold text-danger">-${expense.formatted_amount || expense.amount}</td>
                     <td>
                         <i class="fas ${expense.payment_method_icon || "fa-credit-card"}"></i>
                         <small>${expense.payment_method_label || expense.payment_method}</small>
@@ -572,7 +552,7 @@ const Expenses = (() => {
                 expenseModal.hide();
                 // Refresh budgets and expenses
                 await loadBudgets();
-                loadExpenses(currentFilter);
+                loadExpenses();
                 showSuccess(result.message || "Expense saved successfully.");
             } else if (response.status === 422) {
                 displayValidationErrors(result.errors);
@@ -593,7 +573,7 @@ const Expenses = (() => {
     const openDeleteModal = (id, name) => {
         elements.deleteExpenseId.value = id;
         if (elements.deleteExpenseName) {
-            elements.deleteExpenseName.textContent = name || "this transaction";
+            elements.deleteExpenseName.textContent = name || "this expense";
         }
         deleteModal.show();
     };
@@ -620,7 +600,7 @@ const Expenses = (() => {
             if (result.success) {
                 deleteModal.hide();
                 await loadBudgets();
-                loadExpenses(currentFilter);
+                loadExpenses();
                 showSuccess(result.message || "Expense deleted successfully.");
             } else {
                 showError(result.message || "Failed to delete expense.");
