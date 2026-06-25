@@ -201,14 +201,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function fetchSummary() {
-        fetch("/api/incomes/summary", { headers: authHeaders() })
-            .then((res) => (res.ok ? res.json() : Promise.reject()))
-            .then((result) => {
-                if (!result.success) return;
-                const data = result.data;
+        Promise.all([
+            fetch("/api/incomes/summary", { headers: authHeaders() }).then(
+                (res) => (res.ok ? res.json() : Promise.reject()),
+            ),
+            fetch("/api/expenses/summary", { headers: authHeaders() }).then(
+                (res) => (res.ok ? res.json() : Promise.reject()),
+            ),
+        ])
+            .then(([incomeResult, expenseResult]) => {
+                if (!incomeResult.success) return;
+                const data = incomeResult.data;
 
-                document.getElementById("summaryMonthTotal").textContent =
-                    formatCurrency(data.total_income);
+                // "This month" shows the actual amount you have right now
+                // (income minus expenses), not just the raw income sum.
+                const netCashFlow = expenseResult.success
+                    ? Number(expenseResult.data.net_cash_flow)
+                    : Number(data.total_income);
+
+                const totalEl = document.getElementById("summaryMonthTotal");
+                totalEl.textContent = formatCurrency(netCashFlow);
+                totalEl.classList.toggle("text-danger", netCashFlow < 0);
+
                 const entries = data.total_entries ?? 0;
                 document.getElementById("summaryMonthEntries").innerHTML =
                     entries > 0

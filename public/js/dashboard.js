@@ -341,7 +341,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const iconClass =
                 CATEGORY_ICONS[goal.category] || goal.category_icon || "fa-box";
 
-            // Progress is "monthly income vs target" since that's the
+            // Progress is "current balance vs target" since that's the
             // affordability signal already supplied by the API.
             const progressPct = Math.min(
                 100,
@@ -369,6 +369,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <p class="wishlist-card-name">${goal.name}</p>
                                 <span class="wishlist-pill priority-${goal.priority}">${goal.priority_label}</span>
                             </div>
+                            <p class="wishlist-card-price">${formatCurrency(targetAmount)}</p>
                             <p class="wishlist-card-meta">${metaLine}</p>
                             <div class="wishlist-progress">
                                 <div class="wishlist-progress-bar" style="width: ${progressPct}%;"></div>
@@ -408,12 +409,25 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Load monthly income first, then wishlist items
-    fetch("/api/incomes/summary", { headers: jsonHeaders })
-        .then((res) => (res.ok ? res.json() : Promise.reject()))
-        .then((result) => {
-            if (result.success) {
-                monthlyIncome = result.data.total_income || 0;
+    // Load net cash flow (income minus expenses) first, then wishlist items.
+    // We use net cash flow rather than raw income so the wishlist
+    // affordability check reflects what the user actually has left to
+    // spend, not just total income received this month.
+    Promise.all([
+        fetch("/api/incomes/summary", { headers: jsonHeaders }).then((res) =>
+            res.ok ? res.json() : Promise.reject(),
+        ),
+        fetch("/api/expenses/summary", { headers: jsonHeaders }).then((res) =>
+            res.ok ? res.json() : Promise.reject(),
+        ),
+    ])
+        .then(([incomeResult, expenseResult]) => {
+            if (expenseResult.success) {
+                monthlyIncome = Number(expenseResult.data.net_cash_flow) || 0;
+            } else if (incomeResult.success) {
+                // Fallback if the expense summary call fails for some
+                // reason: better to show raw income than nothing.
+                monthlyIncome = Number(incomeResult.data.total_income) || 0;
             }
         })
         .catch(() => {})
