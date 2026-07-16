@@ -85,7 +85,7 @@
                     <div class="mock-chart h-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <h2 class="section-title">Spending this week</h2>
-                            <a href="#" class="section-link">View report</a>
+                            <!-- REMOVED: View report button that was causing logout issue -->
                         </div>
 
                         {{-- dashboard.js populates this with the day-by-day bar chart --}}
